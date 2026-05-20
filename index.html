@@ -88,6 +88,15 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 
 .empty-day{padding:60px 20px;text-align:center;color:#9ca3af;font-size:14px}
 .empty-day-btn{margin-top:12px;padding:8px 18px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
+
+/* ── Now indicator ── */
+.now-band{position:absolute;left:0;right:0;background:rgba(251,191,36,.1);border-top:2px solid rgba(251,191,36,.55);pointer-events:none;z-index:2}
+.now-line{position:absolute;left:0;right:0;height:2px;background:#ef4444;pointer-events:none;z-index:7}
+.now-line::before{content:'';position:absolute;left:-3px;top:-4px;width:10px;height:10px;background:#ef4444;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.9)}
+.now-tick{position:absolute;right:3px;font-size:9px;font-weight:800;color:#ef4444;background:#fff;padding:1px 3px;border-radius:3px;transform:translateY(-50%);z-index:105;white-space:nowrap;font-variant-numeric:tabular-nums;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.live-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#ef4444;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:3px 9px}
+.live-dot{width:7px;height:7px;background:#ef4444;border-radius:50%;animation:livepulse 1.4s ease infinite;flex-shrink:0}
+@keyframes livepulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.75)}}
 </style>
 </head>
 <body>
@@ -100,6 +109,7 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
       <button class="tab" data-day="28" onclick="setDay(28)">Qui 28/05</button>
     </div>
     <div class="header-actions">
+      <span id="live-badge" class="live-badge" style="display:none"><span class="live-dot"></span><span id="live-time"></span></span>
       <span class="counter" id="counter"></span>
       <button class="btn-restore" id="btn-restore" onclick="restoreAll()" style="display:none">↺ Restaurar</button>
     </div>
@@ -622,6 +632,64 @@ document.getElementById('m-notes').addEventListener('input', () => {
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
+// ── Now indicator ─────────────────────────────────────────────
+function getNowSP() {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hour12: false
+  }).formatToParts(new Date());
+  const get = t => parseInt(parts.find(p => p.type === t).value);
+  const hour = get('hour'), minute = get('minute');
+  return { year:get('year'), month:get('month'), day:get('day'),
+           hour, minute, totalMin: hour*60 + minute };
+}
+
+function addNowIndicators() {
+  const sp = getNowSP();
+  const fmt2 = n => String(n).padStart(2,'0');
+  const isEventDay = sp.year===2026 && sp.month===5 && [26,27,28].includes(sp.day);
+  const withinHours = sp.totalMin >= DAY_S && sp.totalMin <= DAY_E;
+
+  // Live badge (header) — show whenever it's an event day within hours
+  const liveBadge = document.getElementById('live-badge');
+  const liveTime  = document.getElementById('live-time');
+  if (liveBadge && liveTime) {
+    liveBadge.style.display = (isEventDay && withinHours) ? '' : 'none';
+    if (isEventDay && withinHours)
+      liveTime.textContent = fmt2(sp.hour)+':'+fmt2(sp.minute)+' SP';
+  }
+
+  // Draw band + line only on the viewed event day, within hours
+  if (!isEventDay || sp.day !== currentDay || !withinHours) return;
+
+  const nowTop  = (sp.totalMin - DAY_S) * PX;
+  const slotMin = Math.floor(sp.totalMin / 30) * 30;
+  const slotTop = Math.max((slotMin - DAY_S) * PX, 0);
+  const bandH   = Math.min(30 * PX, (DAY_E - slotMin) * PX);
+
+  document.querySelectorAll('.trilha-body').forEach(body => {
+    const band = document.createElement('div');
+    band.className = 'now-band';
+    band.style.top = slotTop + 'px';
+    band.style.height = bandH + 'px';
+    body.appendChild(band);
+
+    const line = document.createElement('div');
+    line.className = 'now-line';
+    line.style.top = nowTop + 'px';
+    body.appendChild(line);
+  });
+
+  // Current-time tick on the axis
+  const axis = document.getElementById('time-axis');
+  const tick = document.createElement('div');
+  tick.className = 'now-tick';
+  tick.textContent = fmt2(sp.hour)+':'+fmt2(sp.minute);
+  tick.style.top = (HDR_H + nowTop) + 'px';
+  axis.appendChild(tick);
+}
+
 // ── Render ─────────────────────────────────────────────────────
 function render() {
   const totalH = (DAY_E - DAY_S) * PX;
@@ -755,10 +823,18 @@ function render() {
 
   updateCounter();
   updateRestoreBtn();
+  addNowIndicators();
 }
 
 loadState();
 render();
+
+// Auto-refresh now indicator every 60 s on event days
+(function() {
+  const sp = getNowSP();
+  if (sp.year===2026 && sp.month===5 && [26,27,28].includes(sp.day))
+    setInterval(() => render(), 60_000);
+})();
 </script>
 </body>
 </html>
