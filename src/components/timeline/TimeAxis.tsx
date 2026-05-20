@@ -7,7 +7,7 @@ interface TimeAxisProps {
 
 export function TimeAxis({ nowData }: TimeAxisProps) {
   const totalH = (DAY_E - DAY_S) * PX;
-  const hours = Array.from({ length: DAY_E / 60 - DAY_S / 60 + 1 }, (_, i) => i + 10);
+  const hours = Array.from({ length: DAY_E / 60 - DAY_S / 60 + 1 }, (_, i) => i + DAY_S / 60);
 
   return (
     <div

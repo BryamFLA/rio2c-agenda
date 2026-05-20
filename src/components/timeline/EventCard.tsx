@@ -36,7 +36,6 @@ export function EventCard({ event, lane, onTap, isDragOverlay = false }: EventCa
         width,
         height,
         borderLeftColor: trilhaCfg.color,
-        transform: CSS.Translate.toString(transform),
         opacity: 1,
       }
     : {

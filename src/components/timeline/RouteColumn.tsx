@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core';
 import type { RouteColumnData, NowIndicatorData } from '../../domain/types';
-import { CARD_W, PX, DAY_S, DAY_E, HDR_H } from '../../domain/constants';
+import { CARD_W, PX, DAY_S, DAY_E } from '../../domain/constants';
 import { EventCard } from './EventCard';
 import { NowIndicator } from './NowIndicator';
 
@@ -48,7 +48,7 @@ export function RouteColumn({ data, onTap, nowData, stickyTop }: RouteColumnProp
         style={{ height: totalH }}
       >
         {/* Grid lines */}
-        {Array.from({ length: DAY_E / 60 - DAY_S / 60 + 1 }, (_, i) => i + 10).map(h => {
+        {Array.from({ length: DAY_E / 60 - DAY_S / 60 + 1 }, (_, i) => i + DAY_S / 60).map(h => {
           const top = (h * 60 - DAY_S) * PX;
           return (
             <span key={h}>
