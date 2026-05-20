@@ -1,8 +1,11 @@
-import type { AppEvent, LaneAssignment } from './types';
+import type { AppEvent, LaneAssignment, TimeGroup } from './types';
 
 /** Converte "HH:MM" para total de minutos */
 export function toMin(t: string): number {
   const [h, m] = t.split(':').map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) {
+    throw new Error(`toMin: invalid time string "${t}"`);
+  }
   return h * 60 + m;
 }
 
@@ -59,7 +62,7 @@ export function cleanTitle(title: string): string {
  * Agrupa eventos por horário de início — usado no layout mobile.
  * Retorna TimeGroup[] ordenado cronologicamente.
  */
-export function groupEventsByTime(events: AppEvent[]): import('./types').TimeGroup[] {
+export function groupEventsByTime(events: AppEvent[]): TimeGroup[] {
   const map = new Map<string, AppEvent[]>();
   const sorted = [...events].sort((a, b) => a.startMin - b.startMin);
   sorted.forEach(e => {
