@@ -402,22 +402,32 @@ function assignRoute(idx, routeKey) {
 function initCardPointerEvents(card, idx) {
   let holdTimer = null;
   let startX = 0, startY = 0;
+  let pid = null; // pointerId para capture
 
   card.addEventListener('pointerdown', e => {
     if (e.target.closest('.ev-remove') || e.target.closest('.ev-fav')) return;
+    // preventDefault: impede menu de contexto do iOS/Android no long-press
+    // e impede que o browser inicie scroll antes do timer de hold
+    e.preventDefault();
     startX = e.clientX; startY = e.clientY;
+    pid = e.pointerId;
     holdTimer = setTimeout(() => {
       holdTimer = null;
+      // setPointerCapture: garante que TODOS os eventos pointer (move/up)
+      // continuem chegando no card mesmo se o dedo sair da área
+      try { card.setPointerCapture(pid); } catch (_) {}
       startDrag(idx, card, startX, startY);
     }, DRAG_DELAY);
   });
 
   card.addEventListener('pointermove', e => {
     if (!holdTimer) return;
+    // Impede scroll do browser durante o período de hold
+    e.preventDefault();
     if (Math.hypot(e.clientX - startX, e.clientY - startY) > DRAG_THRESH) {
       clearTimeout(holdTimer); holdTimer = null;
     }
-  });
+  }, { passive: false });
 
   card.addEventListener('pointerup', e => {
     if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; openModal(idx); }
