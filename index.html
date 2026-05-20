@@ -8,7 +8,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f2f8;color:#1a1a2e;overscroll-behavior:none}
 header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-index:200;box-shadow:0 2px 10px rgba(0,0,0,.4)}
-.header-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.header-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .logo{font-weight:700;font-size:15px;white-space:nowrap;letter-spacing:.5px}
 .tabs{display:flex;gap:6px}
 .tab{padding:6px 14px;border:none;border-radius:20px;cursor:pointer;font-size:13px;font-weight:600;background:rgba(255,255,255,.12);color:rgba(255,255,255,.8);transition:all .2s}
@@ -17,7 +17,10 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 .leg-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:500;opacity:.85}
 .leg-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
-.counter{margin-left:auto;font-size:11px;opacity:.5;align-self:flex-end}
+.header-actions{display:flex;align-items:center;gap:8px;margin-left:auto}
+.counter{font-size:11px;opacity:.5}
+.btn-restore{padding:4px 10px;border:1px solid rgba(255,255,255,.25);border-radius:12px;cursor:pointer;font-size:11px;font-weight:600;background:transparent;color:rgba(255,255,255,.65);transition:all .2s}
+.btn-restore:hover{background:rgba(255,255,255,.15);color:#fff}
 
 .page{display:flex;padding-bottom:40px;overflow-x:auto;min-height:calc(100vh - 96px)}
 .time-axis{flex-shrink:0;width:52px;position:sticky;left:0;z-index:100;background:#f0f2f8}
@@ -28,14 +31,14 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 .trilha-col{min-width:200px;flex:1;position:relative;display:flex;flex-direction:column}
 .trilha-hdr{text-align:center;font-size:10px;font-weight:800;padding:0 6px;border-radius:6px 6px 0 0;height:36px;display:flex;align-items:center;justify-content:center;letter-spacing:.6px;text-transform:uppercase;position:sticky;top:96px;z-index:90;border-bottom:2px solid}
 .trilha-body{position:relative;flex:1}
-
 .grid-line{position:absolute;left:0;right:0;pointer-events:none}
 .grid-line.hour{border-top:1px solid #dde1ea}
 .grid-line.half{border-top:1px dashed #eaedf3}
-.grid-label{position:absolute;left:2px;font-size:8px;color:#d1d5db;transform:translateY(-9px);pointer-events:none}
 
-.ev-card{position:absolute;border-radius:7px;background:#fff;border-left:4px solid;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:4px 20px 4px 7px;overflow:hidden;transition:opacity .25s,box-shadow .15s}
+.ev-card{position:absolute;border-radius:7px;background:#fff;border-left:4px solid;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:4px 20px 4px 22px;overflow:hidden;transition:opacity .25s,box-shadow .15s;cursor:pointer}
 .ev-card:hover{box-shadow:0 2px 10px rgba(0,0,0,.14);z-index:50}
+.ev-card.faved{background:#fffbeb}
+.ev-card.removed{opacity:0;pointer-events:none;transform:scale(.95)}
 .ev-time{font-size:9px;color:#9ca3af;margin-bottom:1px;font-variant-numeric:tabular-nums}
 .ev-title{font-size:11px;font-weight:600;line-height:1.35;color:#111827}
 .ev-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;align-items:center}
@@ -43,9 +46,36 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 .ev-room{font-size:9px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
 .ev-remove{position:absolute;top:3px;right:3px;width:16px;height:16px;border:none;background:rgba(0,0,0,.06);border-radius:50%;cursor:pointer;font-size:9px;color:#6b7280;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;transition:all .15s;font-family:monospace}
 .ev-remove:hover{background:rgba(220,38,38,.18);color:#dc2626;transform:scale(1.15)}
-.ev-card.removed{opacity:0;pointer-events:none;transform:scale(.95)}
+.ev-fav{position:absolute;top:3px;left:3px;width:15px;height:15px;border:none;background:transparent;border-radius:50%;cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;transition:all .15s;color:#d1d5db}
+.ev-fav:hover,.ev-fav.on{color:#f59e0b;transform:scale(1.15)}
+.ev-note-dot{position:absolute;bottom:3px;right:3px;width:5px;height:5px;border-radius:50%;background:#6366f1;opacity:.7;pointer-events:none}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-head{padding:14px 16px 12px;border-bottom:1px solid #f0f2f5;display:flex;align-items:center;gap:8px}
+.modal-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.3px;flex-shrink:0}
+.modal-close{margin-left:auto;width:26px;height:26px;border:none;background:#f3f4f6;border-radius:50%;cursor:pointer;font-size:12px;color:#6b7280;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.modal-close:hover{background:#fee2e2;color:#dc2626}
+.modal-body{padding:14px 16px}
+.modal-title{font-size:15px;font-weight:700;color:#111827;line-height:1.4;margin-bottom:10px}
+.modal-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.modal-meta span{font-size:11px;padding:3px 8px;border-radius:6px;background:#f3f4f6;color:#374151;font-weight:500}
+.modal-btns{display:flex;gap:8px;margin-bottom:14px}
+.modal-btn{flex:1;padding:9px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
+.modal-btn-fav{background:#fef3c7;color:#92400e}
+.modal-btn-fav.on{background:#f59e0b;color:#fff}
+.modal-btn-fav:hover:not(.on){background:#fde68a}
+.modal-btn-remove{background:#fee2e2;color:#991b1b}
+.modal-btn-remove:hover{background:#fca5a5}
+.modal-notes-label{font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;display:block}
+.modal-textarea{width:100%;padding:9px 11px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:80px;outline:none;transition:border-color .15s;color:#111827}
+.modal-textarea:focus{border-color:#6366f1}
+.modal-textarea::placeholder{color:#d1d5db}
 
 .empty-day{padding:60px 20px;text-align:center;color:#9ca3af;font-size:14px}
+.empty-day-btn{margin-top:12px;padding:8px 18px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+.empty-day-btn:hover{background:#4f46e5}
 </style>
 </head>
 <body>
@@ -57,7 +87,10 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
       <button class="tab" data-day="27" onclick="setDay(27)">Qua 27/05</button>
       <button class="tab" data-day="28" onclick="setDay(28)">Qui 28/05</button>
     </div>
-    <span class="counter" id="counter"></span>
+    <div class="header-actions">
+      <span class="counter" id="counter"></span>
+      <button class="btn-restore" id="btn-restore" onclick="restoreAll()" style="display:none">↺ Restaurar</button>
+    </div>
   </div>
   <div class="legend" id="legend"></div>
 </header>
@@ -65,6 +98,26 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 <div class="page">
   <div class="time-axis" id="time-axis"></div>
   <div class="trilhas-wrap" id="trilhas"></div>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeModal()" style="display:none">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-badge" id="m-badge"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-title" id="m-title"></div>
+      <div class="modal-meta" id="m-meta"></div>
+      <div class="modal-btns">
+        <button class="modal-btn modal-btn-fav" id="m-fav" onclick="modalToggleFav()">☆ Favoritar</button>
+        <button class="modal-btn modal-btn-remove" id="m-remove" onclick="modalRemove()">✕ Remover</button>
+      </div>
+      <label class="modal-notes-label">Notas</label>
+      <textarea class="modal-textarea" id="m-notes" placeholder="Anote algo sobre este painel..."></textarea>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -78,14 +131,17 @@ const TRILHAS = {
 };
 const ORDER = ['games','creator','ia','tech','marketing','edu'];
 
-const PX = 1.5;        // pixels per minute
-const DAY_S = 10*60;   // 10:00
-const DAY_E = 19*60;   // 19:00
-const HDR_H = 36;      // header height px
-const STICKY_TOP = 96; // header offset px
+const PX = 1.5;
+const DAY_S = 10*60;
+const DAY_E = 19*60;
+const HDR_H = 36;
+const STICKY_TOP = 96;
 
 let currentDay = 26;
-const hidden = new Set();
+let hidden = new Set();
+let favorites = new Set();
+let notes = {};
+let modalEvIdx = null;
 
 // [idx, day, start, end, title, room, trilha]
 const EV = [
@@ -226,157 +282,277 @@ const EV = [
 [134,28,"17:30","18:00","S.O.S. Habilidades: Paciência","BrainSpace","edu"]
 ];
 
-function toMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
-
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-function getType(title){
-  if(/S\.O\.S\. Habilidades/i.test(title))   return'Workshop';
-  if(/masterclass/i.test(title))              return'Masterclass';
-  if(/^mentoria/i.test(title))               return'Mentoria';
-  if(/art talks for lunch/i.test(title))     return'Art Talk';
-  if(/laboratório dos sentidos/i.test(title))return'Lab';
-  if(/Prêmio|Premio/i.test(title))           return'Premiação';
-  if(/sessão patrocinada|\*sessão/i.test(title))return'Patrocinada';
-  if(/meetup/i.test(title))                  return'Meetup';
-  if(/pitching/i.test(title))               return'Pitching';
-  if(/abertura/i.test(title))               return'Abertura';
-  if(/conversas no aquário/i.test(title))   return'Mesa Redonda';
-  return'Palestra';
+// ── State persistence ──────────────────────────────────────────
+function saveState() {
+  try {
+    localStorage.setItem('rio2c_hidden',    JSON.stringify([...hidden]));
+    localStorage.setItem('rio2c_favorites', JSON.stringify([...favorites]));
+    localStorage.setItem('rio2c_notes',     JSON.stringify(notes));
+  } catch(e) {}
 }
 
-function assignLanes(evs){
-  const sorted=[...evs].sort((a,b)=>a.startMin-b.startMin);
-  const lanes=[];
-  const map={};
-  sorted.forEach(e=>{
-    let placed=false;
-    for(let i=0;i<lanes.length;i++){
-      if(e.startMin>=lanes[i].endMin){
-        map[e.idx]=i;
-        lanes[i]={endMin:e.endMin};
-        placed=true;break;
+function loadState() {
+  try {
+    const h = localStorage.getItem('rio2c_hidden');
+    if (h) hidden = new Set(JSON.parse(h));
+    const f = localStorage.getItem('rio2c_favorites');
+    if (f) favorites = new Set(JSON.parse(f));
+    const n = localStorage.getItem('rio2c_notes');
+    if (n) notes = JSON.parse(n);
+  } catch(e) {}
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function toMin(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function getType(title) {
+  if (/S\.O\.S\. Habilidades/i.test(title))      return 'Workshop';
+  if (/masterclass/i.test(title))                 return 'Masterclass';
+  if (/^mentoria/i.test(title))                   return 'Mentoria';
+  if (/art talks for lunch/i.test(title))         return 'Art Talk';
+  if (/laboratório dos sentidos/i.test(title))    return 'Lab';
+  if (/Prêmio|Premio/i.test(title))               return 'Premiação';
+  if (/sessão patrocinada|\*sessão/i.test(title)) return 'Patrocinada';
+  if (/meetup/i.test(title))                      return 'Meetup';
+  if (/pitching/i.test(title))                    return 'Pitching';
+  if (/abertura/i.test(title))                    return 'Abertura';
+  if (/conversas no aquário/i.test(title))        return 'Mesa Redonda';
+  return 'Palestra';
+}
+
+function assignLanes(evs) {
+  const sorted = [...evs].sort((a,b) => a.startMin - b.startMin);
+  const lanes = [];
+  const map = {};
+  sorted.forEach(e => {
+    let placed = false;
+    for (let i = 0; i < lanes.length; i++) {
+      if (e.startMin >= lanes[i].endMin) {
+        map[e.idx] = i;
+        lanes[i] = {endMin: e.endMin};
+        placed = true; break;
       }
     }
-    if(!placed){map[e.idx]=lanes.length;lanes.push({endMin:e.endMin});}
+    if (!placed) { map[e.idx] = lanes.length; lanes.push({endMin: e.endMin}); }
   });
-  return{map,n:lanes.length};
+  return {map, n: lanes.length};
 }
 
-function setDay(d){
-  currentDay=d;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',+t.dataset.day===d));
+// ── UI updates ─────────────────────────────────────────────────
+function updateCounter() {
+  const vis = EV.filter(e => e[1] === currentDay && !hidden.has(e[0])).length;
+  document.getElementById('counter').textContent = vis + ' evento' + (vis !== 1 ? 's' : '');
+}
+
+function updateRestoreBtn() {
+  const btn = document.getElementById('btn-restore');
+  if (btn) btn.style.display = hidden.size > 0 ? '' : 'none';
+}
+
+function updateCardVisual(idx) {
+  const card = document.getElementById('ev-' + idx);
+  if (!card) return;
+  card.classList.toggle('faved', favorites.has(idx));
+  const favBtn = card.querySelector('.ev-fav');
+  if (favBtn) favBtn.classList.toggle('on', favorites.has(idx));
+  let dot = card.querySelector('.ev-note-dot');
+  const hasNote = !!(notes[idx] && notes[idx].trim());
+  if (hasNote && !dot) {
+    dot = document.createElement('div');
+    dot.className = 'ev-note-dot';
+    card.appendChild(dot);
+  } else if (!hasNote && dot) {
+    dot.remove();
+  }
+}
+
+// ── Actions ────────────────────────────────────────────────────
+function setDay(d) {
+  currentDay = d;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', +t.dataset.day === d));
   render();
 }
 
-function removeEvent(idx){
+function removeEvent(idx) {
   hidden.add(idx);
-  const el=document.getElementById('ev-'+idx);
-  if(el){el.classList.add('removed');setTimeout(()=>el.remove(),260);}
+  saveState();
+  const el = document.getElementById('ev-' + idx);
+  if (el) { el.classList.add('removed'); setTimeout(() => el.remove(), 260); }
   updateCounter();
+  updateRestoreBtn();
 }
 
-function updateCounter(){
-  const vis=EV.filter(e=>e[1]===currentDay&&!hidden.has(e[0])).length;
-  document.getElementById('counter').textContent=vis+' evento'+(vis!==1?'s':'');
+function toggleFavorite(idx) {
+  if (favorites.has(idx)) favorites.delete(idx);
+  else favorites.add(idx);
+  saveState();
+  updateCardVisual(idx);
 }
 
-function render(){
-  const totalH=(DAY_E-DAY_S)*PX;
+function restoreAll() {
+  hidden.clear();
+  saveState();
+  updateRestoreBtn();
+  render();
+}
 
-  // Time axis
-  const axis=document.getElementById('time-axis');
-  axis.style.height=(totalH+HDR_H+8)+'px';
-  axis.innerHTML='';
-  for(let h=10;h<=19;h++){
-    const top=HDR_H+(h*60-DAY_S)*PX;
-    const lbl=Object.assign(document.createElement('div'),{className:'time-label',textContent:h+':00'});
-    lbl.style.top=top+'px';
+// ── Modal ──────────────────────────────────────────────────────
+function openModal(idx) {
+  const ev = EV.find(e => e[0] === idx);
+  if (!ev || hidden.has(idx)) return;
+  modalEvIdx = idx;
+  const [,, start, end, title, room, trilha] = ev;
+  const cfg = TRILHAS[trilha];
+  const type = getType(title);
+
+  const badge = document.getElementById('m-badge');
+  badge.textContent = cfg.label;
+  badge.style.cssText = `background:${cfg.color}18;color:${cfg.color};border:1px solid ${cfg.color}33`;
+
+  document.getElementById('m-title').textContent =
+    title.replace(/\*[^*]*/g, '').replace(/\s+/g, ' ').trim();
+
+  document.getElementById('m-meta').innerHTML =
+    `<span>🕐 ${esc(start)} – ${esc(end)}</span>` +
+    `<span>📍 ${esc(room)}</span>` +
+    `<span>${type}</span>`;
+
+  const favBtn = document.getElementById('m-fav');
+  favBtn.textContent = favorites.has(idx) ? '★ Favoritado' : '☆ Favoritar';
+  favBtn.classList.toggle('on', favorites.has(idx));
+
+  document.getElementById('m-notes').value = notes[idx] || '';
+
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = 'none';
+  modalEvIdx = null;
+}
+
+function modalToggleFav() {
+  if (modalEvIdx === null) return;
+  toggleFavorite(modalEvIdx);
+  const favBtn = document.getElementById('m-fav');
+  favBtn.textContent = favorites.has(modalEvIdx) ? '★ Favoritado' : '☆ Favoritar';
+  favBtn.classList.toggle('on', favorites.has(modalEvIdx));
+}
+
+function modalRemove() {
+  if (modalEvIdx === null) return;
+  removeEvent(modalEvIdx);
+  closeModal();
+}
+
+document.getElementById('m-notes').addEventListener('input', () => {
+  if (modalEvIdx === null) return;
+  const text = document.getElementById('m-notes').value;
+  if (text.trim()) notes[modalEvIdx] = text;
+  else delete notes[modalEvIdx];
+  saveState();
+  updateCardVisual(modalEvIdx);
+});
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── Render ─────────────────────────────────────────────────────
+function render() {
+  const totalH = (DAY_E - DAY_S) * PX;
+
+  const axis = document.getElementById('time-axis');
+  axis.style.height = (totalH + HDR_H + 8) + 'px';
+  axis.innerHTML = '';
+  for (let h = 10; h <= 19; h++) {
+    const top = HDR_H + (h*60 - DAY_S) * PX;
+    const lbl = Object.assign(document.createElement('div'), {className:'time-label', textContent:h+':00'});
+    lbl.style.top = top + 'px';
     axis.appendChild(lbl);
-    if(h<19){
-      const lbl2=Object.assign(document.createElement('div'),{className:'time-label half',textContent:h+':30'});
-      lbl2.style.top=(top+30*PX)+'px';
+    if (h < 19) {
+      const lbl2 = Object.assign(document.createElement('div'), {className:'time-label half', textContent:h+':30'});
+      lbl2.style.top = (top + 30*PX) + 'px';
       axis.appendChild(lbl2);
     }
   }
 
-  // Visible events for day
-  const dayEvs=EV.filter(e=>e[1]===currentDay&&!hidden.has(e[0])).map(e=>({
-    idx:e[0],start:e[2],end:e[3],title:e[4],room:e[5],trilha:e[6],
-    startMin:toMin(e[2]),endMin:toMin(e[3]),type:getType(e[4])
+  const dayEvs = EV.filter(e => e[1] === currentDay && !hidden.has(e[0])).map(e => ({
+    idx: e[0], start: e[2], end: e[3], title: e[4], room: e[5], trilha: e[6],
+    startMin: toMin(e[2]), endMin: toMin(e[3]), type: getType(e[4])
   }));
 
-  const dayTrilhas=ORDER.filter(t=>dayEvs.some(e=>e.trilha===t));
+  const dayTrilhas = ORDER.filter(t => dayEvs.some(e => e.trilha === t));
+  const wrap = document.getElementById('trilhas');
+  wrap.innerHTML = '';
 
-  const wrap=document.getElementById('trilhas');
-  wrap.innerHTML='';
-
-  if(dayEvs.length===0){
-    wrap.innerHTML='<div class="empty-day">Todos os eventos foram removidos. Recarregue a página para recomeçar.</div>';
+  if (dayEvs.length === 0) {
+    wrap.innerHTML = '<div class="empty-day">Nenhum evento para exibir.<br><button class="empty-day-btn" onclick="restoreAll()">↺ Restaurar todos</button></div>';
+    updateCounter();
     return;
   }
 
-  dayTrilhas.forEach(key=>{
-    const cfg=TRILHAS[key];
-    const col=document.createElement('div');
-    col.className='trilha-col';
+  dayTrilhas.forEach(key => {
+    const cfg = TRILHAS[key];
+    const col = document.createElement('div');
+    col.className = 'trilha-col';
 
-    // Sticky header
-    const hdr=document.createElement('div');
-    hdr.className='trilha-hdr';
-    hdr.style.cssText=`background:${cfg.color}15;color:${cfg.color};border-bottom-color:${cfg.color};top:${STICKY_TOP}px;`;
-    hdr.textContent=cfg.label;
+    const hdr = document.createElement('div');
+    hdr.className = 'trilha-hdr';
+    hdr.style.cssText = `background:${cfg.color}15;color:${cfg.color};border-bottom-color:${cfg.color};top:${STICKY_TOP}px;`;
+    hdr.textContent = cfg.label;
     col.appendChild(hdr);
 
-    // Body
-    const body=document.createElement('div');
-    body.className='trilha-body';
-    body.style.height=totalH+'px';
+    const body = document.createElement('div');
+    body.className = 'trilha-body';
+    body.style.height = totalH + 'px';
 
-    // Grid lines
-    for(let h=10;h<=19;h++){
-      const top=(h*60-DAY_S)*PX;
-      const g=document.createElement('div');
-      g.className='grid-line hour';g.style.top=top+'px';
+    for (let h = 10; h <= 19; h++) {
+      const top = (h*60 - DAY_S) * PX;
+      const g = document.createElement('div');
+      g.className = 'grid-line hour'; g.style.top = top + 'px';
       body.appendChild(g);
-      if(h<19){
-        const g2=document.createElement('div');
-        g2.className='grid-line half';g2.style.top=(top+30*PX)+'px';
+      if (h < 19) {
+        const g2 = document.createElement('div');
+        g2.className = 'grid-line half'; g2.style.top = (top + 30*PX) + 'px';
         body.appendChild(g2);
       }
     }
 
-    // Events
-    const colEvs=dayEvs.filter(e=>e.trilha===key);
-    const{map:laneMap,n:numLanes}=assignLanes(colEvs);
+    const colEvs = dayEvs.filter(e => e.trilha === key);
+    const {map: laneMap, n: numLanes} = assignLanes(colEvs);
 
-    colEvs.forEach(e=>{
-      const top=(e.startMin-DAY_S)*PX;
-      const h=Math.max((e.endMin-e.startMin)*PX-2,18);
-      const lane=laneMap[e.idx]||0;
-      const lw=100/numLanes;
+    colEvs.forEach(e => {
+      const top = (e.startMin - DAY_S) * PX;
+      const h = Math.max((e.endMin - e.startMin) * PX - 2, 18);
+      const lane = laneMap[e.idx] || 0;
+      const lw = 100 / numLanes;
+      const isFaved = favorites.has(e.idx);
+      const hasNote = !!(notes[e.idx] && notes[e.idx].trim());
 
-      const card=document.createElement('div');
-      card.id='ev-'+e.idx;
-      card.className='ev-card';
-      card.style.cssText=
-        `top:${top}px;height:${h}px;border-left-color:${cfg.color};`+
+      const card = document.createElement('div');
+      card.id = 'ev-' + e.idx;
+      card.className = 'ev-card' + (isFaved ? ' faved' : '');
+      card.style.cssText =
+        `top:${top}px;height:${h}px;border-left-color:${cfg.color};` +
         `left:calc(${lane*lw}% + 1px);width:calc(${lw}% - 2px);`;
+      card.onclick = () => openModal(e.idx);
 
-      const showMeta=h>36;
-      const showRoom=h>56;
-      const cleanTitle=esc(e.title.replace(/\*[^*]*/g,'').replace(/\s+/g,' ').trim());
+      const showMeta = h > 36;
+      const showRoom = h > 56;
+      const cleanTitle = esc(e.title.replace(/\*[^*]*/g,'').replace(/\s+/g,' ').trim());
 
-      card.innerHTML=
-        `<button class="ev-remove" onclick="removeEvent(${e.idx})" title="Remover">✕</button>`+
-        `<div class="ev-time">${e.start}–${e.end}</div>`+
-        `<div class="ev-title">${cleanTitle}</div>`+
+      card.innerHTML =
+        `<button class="ev-fav${isFaved ? ' on' : ''}" onclick="event.stopPropagation();toggleFavorite(${e.idx})" title="Favoritar">★</button>` +
+        `<button class="ev-remove" onclick="event.stopPropagation();removeEvent(${e.idx})" title="Remover">✕</button>` +
+        (hasNote ? `<div class="ev-note-dot"></div>` : '') +
+        `<div class="ev-time">${e.start}–${e.end}</div>` +
+        `<div class="ev-title">${cleanTitle}</div>` +
         (showMeta
-          ?`<div class="ev-meta">`+
-            `<span class="ev-type">${e.type}</span>`+
-            (showRoom?`<span class="ev-room">📍 ${esc(e.room)}</span>`:'')+
+          ? `<div class="ev-meta">` +
+            `<span class="ev-type">${e.type}</span>` +
+            (showRoom ? `<span class="ev-room">📍 ${esc(e.room)}</span>` : '') +
             `</div>`
-          :'');
+          : '');
 
       body.appendChild(card);
     });
@@ -385,16 +561,17 @@ function render(){
     wrap.appendChild(col);
   });
 
-  // Legend
-  const leg=document.getElementById('legend');
-  leg.innerHTML=dayTrilhas.map(t=>{
-    const c=TRILHAS[t];
-    return`<div class="leg-item"><div class="leg-dot" style="background:${c.color}"></div><span>${c.label}</span></div>`;
+  const leg = document.getElementById('legend');
+  leg.innerHTML = dayTrilhas.map(t => {
+    const c = TRILHAS[t];
+    return `<div class="leg-item"><div class="leg-dot" style="background:${c.color}"></div><span>${c.label}</span></div>`;
   }).join('');
 
   updateCounter();
+  updateRestoreBtn();
 }
 
+loadState();
 render();
 </script>
 </body>
