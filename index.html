@@ -28,17 +28,20 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 .time-label.half{color:#d1d5db;font-size:9px}
 .trilhas-wrap{display:flex;gap:16px;padding:0 16px;flex:1;align-items:flex-start}
 
-.trilha-col{flex:none;position:relative;display:flex;flex-direction:column}
+.trilha-col{flex:none;position:relative;display:flex;flex-direction:column;border-radius:8px;transition:background .15s,outline .15s}
+.trilha-col.drop-active{outline:2px dashed rgba(99,102,241,.5);outline-offset:-2px;background:rgba(99,102,241,.04)}
 .trilha-hdr{text-align:center;font-size:10px;font-weight:800;padding:0 6px;border-radius:6px 6px 0 0;height:36px;display:flex;align-items:center;justify-content:center;letter-spacing:.6px;text-transform:uppercase;position:sticky;top:96px;z-index:90;border-bottom:2px solid}
 .trilha-body{position:relative;flex:1}
 .grid-line{position:absolute;left:0;right:0;pointer-events:none}
 .grid-line.hour{border-top:1px solid #dde1ea}
 .grid-line.half{border-top:1px dashed #eaedf3}
+.col-empty{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:#d1d5db;text-align:center;line-height:1.6;width:130px;pointer-events:none;user-select:none}
 
-.ev-card{position:absolute;border-radius:7px;background:#fff;border-left:4px solid;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:4px 20px 4px 28px;overflow:hidden;transition:opacity .25s,box-shadow .15s;cursor:pointer}
-.ev-card:hover{box-shadow:0 2px 10px rgba(0,0,0,.14);z-index:50}
+.ev-card{position:absolute;border-radius:7px;background:#fff;border-left:4px solid;box-shadow:0 1px 4px rgba(0,0,0,.08);padding:4px 20px 4px 28px;overflow:hidden;transition:opacity .25s,box-shadow .15s;touch-action:none;user-select:none}
+.ev-card:active{box-shadow:0 2px 10px rgba(0,0,0,.14)}
 .ev-card.faved{background:#fffbeb}
 .ev-card.removed{opacity:0;pointer-events:none;transform:scale(.95)}
+.ev-card.dragging{opacity:.25}
 .ev-time{font-size:9px;color:#9ca3af;margin-bottom:1px;font-variant-numeric:tabular-nums}
 .ev-title{font-size:11px;font-weight:600;line-height:1.35;color:#111827}
 .ev-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px;align-items:center}
@@ -53,6 +56,9 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 .ev-note-badge::before{content:'';position:absolute;top:0;right:0;width:4px;height:4px;background:#f0f2f8;border-radius:0 0 0 2px}
 .ev-note-badge::after{content:'';position:absolute;left:2px;top:5px;width:6px;height:1.5px;background:rgba(255,255,255,.85);box-shadow:0 2.5px 0 rgba(255,255,255,.85)}
 
+/* Drag ghost */
+.drag-ghost{position:fixed;border-radius:7px;border-left:4px solid;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:4px 20px 4px 28px;overflow:hidden;pointer-events:none;z-index:1000;transform:scale(1.04) rotate(1deg);transition:transform .1s}
+
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
 .modal{background:#fff;border-radius:14px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
@@ -62,8 +68,12 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 .modal-close:hover{background:#fee2e2;color:#dc2626}
 .modal-body{padding:14px 16px}
 .modal-title{font-size:15px;font-weight:700;color:#111827;line-height:1.4;margin-bottom:10px}
-.modal-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.modal-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .modal-meta span{font-size:11px;padding:3px 8px;border-radius:6px;background:#f3f4f6;color:#374151;font-weight:500}
+.modal-routes{display:flex;gap:5px;margin-bottom:12px}
+.route-btn{flex:1;padding:7px 4px;border:1.5px solid #e5e7eb;border-radius:7px;cursor:pointer;font-size:10px;font-weight:700;background:#fff;color:#6b7280;transition:all .15s;text-align:center;line-height:1.2}
+.route-btn.active{color:#fff;border-color:transparent}
+.route-btn:not(.active):hover{background:#f3f4f6}
 .modal-btns{display:flex;gap:8px;margin-bottom:14px}
 .modal-btn{flex:1;padding:9px;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
 .modal-btn-fav{background:#fef3c7;color:#92400e}
@@ -77,8 +87,7 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 .modal-textarea::placeholder{color:#d1d5db}
 
 .empty-day{padding:60px 20px;text-align:center;color:#9ca3af;font-size:14px}
-.empty-day-btn{margin-top:12px;padding:8px 18px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
-.empty-day-btn:hover{background:#4f46e5}
+.empty-day-btn{margin-top:12px;padding:8px 18px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600}
 </style>
 </head>
 <body>
@@ -113,6 +122,7 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
     <div class="modal-body">
       <div class="modal-title" id="m-title"></div>
       <div class="modal-meta" id="m-meta"></div>
+      <div class="modal-routes" id="m-routes"></div>
       <div class="modal-btns">
         <button class="modal-btn modal-btn-fav" id="m-fav" onclick="modalToggleFav()">☆ Favoritar</button>
         <button class="modal-btn modal-btn-remove" id="m-remove" onclick="modalRemove()">✕ Remover</button>
@@ -124,6 +134,7 @@ header{background:#1a1a2e;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 </div>
 
 <script>
+// ── Trilha colors (used only for card left border) ─────────────
 const TRILHAS = {
   games:    {label:'🎮 Games & Esports',     color:'#7C3AED'},
   creator:  {label:'💡 Creator Economy',     color:'#EA580C'},
@@ -132,20 +143,36 @@ const TRILHAS = {
   marketing:{label:'📣 Marketing & Marcas',  color:'#DB2777'},
   edu:      {label:'🎓 Educação & Carreira', color:'#16A34A'}
 };
-const ORDER = ['games','creator','ia','tech','marketing','edu'];
 
-const PX = 1.5;
-const DAY_S = 10*60;
-const DAY_E = 19*60;
-const HDR_H = 36;
-const STICKY_TOP = 96;
-const CARD_W = 168;
+// ── Route column definitions ───────────────────────────────────
+const ROUTE_COLS = [
+  { key: 1, label: 'Rota 1', color: '#2563EB' },
+  { key: 2, label: 'Rota 2', color: '#EA580C' },
+  { key: 3, label: 'Rota 3', color: '#059669' },
+  { key: 0, label: 'Disponíveis', color: '#6b7280' },
+];
+const ROUTE_COLORS = { 0:'#6b7280', 1:'#2563EB', 2:'#EA580C', 3:'#059669' };
+const ROUTE_LABELS = { 0:'Livre', 1:'Rota 1', 2:'Rota 2', 3:'Rota 3' };
 
+// ── Constants ──────────────────────────────────────────────────
+const PX           = 1.5;
+const DAY_S        = 10*60;
+const DAY_E        = 19*60;
+const HDR_H        = 36;
+const STICKY_TOP   = 96;
+const CARD_W       = 168;
+const DRAG_DELAY   = 180;   // ms hold before drag starts
+const DRAG_THRESH  = 8;     // px movement cancels hold
+
+// ── State ──────────────────────────────────────────────────────
 let currentDay = 26;
-let hidden = new Set();
+let hidden    = new Set();
 let favorites = new Set();
-let notes = {};
+let notes     = {};
+let routes    = { 1: new Set(), 2: new Set(), 3: new Set() };
 let modalEvIdx = null;
+let dragState  = null;
+let dragGhost  = null;
 
 // [idx, day, start, end, title, room, trilha]
 const EV = [
@@ -286,12 +313,15 @@ const EV = [
 [134,28,"17:30","18:00","S.O.S. Habilidades: Paciência","BrainSpace","edu"]
 ];
 
-// ── State persistence ──────────────────────────────────────────
+// ── Persistence ────────────────────────────────────────────────
 function saveState() {
   try {
     localStorage.setItem('rio2c_hidden',    JSON.stringify([...hidden]));
     localStorage.setItem('rio2c_favorites', JSON.stringify([...favorites]));
     localStorage.setItem('rio2c_notes',     JSON.stringify(notes));
+    localStorage.setItem('rio2c_routes',    JSON.stringify({
+      1: [...routes[1]], 2: [...routes[2]], 3: [...routes[3]]
+    }));
   } catch(e) {}
 }
 
@@ -303,6 +333,11 @@ function loadState() {
     if (f) favorites = new Set(JSON.parse(f));
     const n = localStorage.getItem('rio2c_notes');
     if (n) notes = JSON.parse(n);
+    const r = localStorage.getItem('rio2c_routes');
+    if (r) {
+      const p = JSON.parse(r);
+      routes = { 1: new Set(p[1]||[]), 2: new Set(p[2]||[]), 3: new Set(p[3]||[]) };
+    }
   } catch(e) {}
 }
 
@@ -327,15 +362,12 @@ function getType(title) {
 
 function assignLanes(evs) {
   const sorted = [...evs].sort((a,b) => a.startMin - b.startMin);
-  const lanes = [];
-  const map = {};
+  const lanes = [], map = {};
   sorted.forEach(e => {
     let placed = false;
     for (let i = 0; i < lanes.length; i++) {
       if (e.startMin >= lanes[i].endMin) {
-        map[e.idx] = i;
-        lanes[i] = {endMin: e.endMin};
-        placed = true; break;
+        map[e.idx] = i; lanes[i] = {endMin: e.endMin}; placed = true; break;
       }
     }
     if (!placed) { map[e.idx] = lanes.length; lanes.push({endMin: e.endMin}); }
@@ -343,10 +375,136 @@ function assignLanes(evs) {
   return {map, n: lanes.length};
 }
 
-// ── UI updates ─────────────────────────────────────────────────
+function getEvRoute(idx) {
+  if (routes[1].has(idx)) return 1;
+  if (routes[2].has(idx)) return 2;
+  if (routes[3].has(idx)) return 3;
+  return 0;
+}
+
+function assignRoute(idx, routeKey) {
+  routes[1].delete(idx); routes[2].delete(idx); routes[3].delete(idx);
+  if (routeKey > 0) routes[routeKey].add(idx);
+  saveState();
+}
+
+// ── Drag and drop (Pointer Events) ────────────────────────────
+function initCardPointerEvents(card, idx) {
+  let holdTimer = null;
+  let startX = 0, startY = 0;
+
+  card.addEventListener('pointerdown', e => {
+    if (e.target.closest('.ev-remove') || e.target.closest('.ev-fav')) return;
+    startX = e.clientX; startY = e.clientY;
+    holdTimer = setTimeout(() => {
+      holdTimer = null;
+      startDrag(idx, card, startX, startY);
+    }, DRAG_DELAY);
+  });
+
+  card.addEventListener('pointermove', e => {
+    if (!holdTimer) return;
+    if (Math.hypot(e.clientX - startX, e.clientY - startY) > DRAG_THRESH) {
+      clearTimeout(holdTimer); holdTimer = null;
+    }
+  });
+
+  card.addEventListener('pointerup', e => {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; openModal(idx); }
+  });
+
+  card.addEventListener('pointercancel', () => {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+  });
+}
+
+function startDrag(idx, srcCard, startX, startY) {
+  const rect = srcCard.getBoundingClientRect();
+  const trilhaCfg = TRILHAS[EV.find(e => e[0] === idx)?.[6]] || { color: '#6b7280' };
+
+  dragGhost = document.createElement('div');
+  dragGhost.className = 'drag-ghost';
+  dragGhost.innerHTML = srcCard.innerHTML;
+  dragGhost.style.cssText =
+    `width:${CARD_W}px;height:${rect.height}px;` +
+    `left:${rect.left}px;top:${rect.top}px;` +
+    `border-left-color:${trilhaCfg.color};` +
+    `background:${srcCard.classList.contains('faved') ? '#fffbeb' : '#fff'};`;
+  document.body.appendChild(dragGhost);
+
+  srcCard.classList.add('dragging');
+  dragState = {
+    idx,
+    srcCard,
+    originRoute: getEvRoute(idx),
+    offX: startX - rect.left,
+    offY: startY - rect.top
+  };
+
+  document.addEventListener('pointermove', onDragMove, { passive: false });
+  document.addEventListener('pointerup',   onDragEnd);
+  document.addEventListener('pointercancel', onDragCancel);
+}
+
+function onDragMove(e) {
+  if (!dragGhost || !dragState) return;
+  e.preventDefault();
+  dragGhost.style.left = (e.clientX - dragState.offX) + 'px';
+  dragGhost.style.top  = (e.clientY - dragState.offY) + 'px';
+
+  document.querySelectorAll('.trilha-col').forEach(col => {
+    const r = col.getBoundingClientRect();
+    const over = e.clientX >= r.left && e.clientX <= r.right &&
+                 e.clientY >= r.top  && e.clientY <= r.bottom;
+    col.classList.toggle('drop-active', over);
+  });
+}
+
+function onDragEnd(e) {
+  if (!dragState) { dragCleanup(); return; }
+
+  let targetRoute = null;
+  document.querySelectorAll('.trilha-col').forEach(col => {
+    const r = col.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right &&
+        e.clientY >= r.top  && e.clientY <= r.bottom) {
+      targetRoute = parseInt(col.dataset.route);
+    }
+  });
+
+  dragCleanup();
+
+  if (targetRoute !== null && targetRoute !== dragState.originRoute) {
+    assignRoute(dragState.idx, targetRoute);
+    dragState = null;
+    render();
+  } else {
+    dragState.srcCard.classList.remove('dragging');
+    dragState = null;
+  }
+}
+
+function onDragCancel() {
+  if (dragState) { dragState.srcCard.classList.remove('dragging'); dragState = null; }
+  dragCleanup();
+}
+
+function dragCleanup() {
+  document.removeEventListener('pointermove', onDragMove);
+  document.removeEventListener('pointerup',   onDragEnd);
+  document.removeEventListener('pointercancel', onDragCancel);
+  document.querySelectorAll('.trilha-col').forEach(c => c.classList.remove('drop-active'));
+  if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+}
+
+// ── UI helpers ─────────────────────────────────────────────────
 function updateCounter() {
-  const vis = EV.filter(e => e[1] === currentDay && !hidden.has(e[0])).length;
-  document.getElementById('counter').textContent = vis + ' evento' + (vis !== 1 ? 's' : '');
+  const total = EV.filter(e => e[1] === currentDay && !hidden.has(e[0])).length;
+  const inRoutes = [...routes[1], ...routes[2], ...routes[3]]
+    .filter(idx => EV.find(e => e[0] === idx && e[1] === currentDay)).length;
+  const avail = total - inRoutes;
+  document.getElementById('counter').textContent =
+    inRoutes > 0 ? `${inRoutes} em rotas · ${avail} livres` : `${total} eventos`;
 }
 
 function updateRestoreBtn() {
@@ -363,12 +521,9 @@ function updateCardVisual(idx) {
   let badge = card.querySelector('.ev-note-badge');
   const hasNote = !!(notes[idx] && notes[idx].trim());
   if (hasNote && !badge) {
-    badge = document.createElement('div');
-    badge.className = 'ev-note-badge';
+    badge = document.createElement('div'); badge.className = 'ev-note-badge';
     card.appendChild(badge);
-  } else if (!hasNote && badge) {
-    badge.remove();
-  }
+  } else if (!hasNote && badge) { badge.remove(); }
 }
 
 // ── Actions ────────────────────────────────────────────────────
@@ -380,25 +535,20 @@ function setDay(d) {
 
 function removeEvent(idx) {
   hidden.add(idx);
+  routes[1].delete(idx); routes[2].delete(idx); routes[3].delete(idx);
   saveState();
   const el = document.getElementById('ev-' + idx);
   if (el) { el.classList.add('removed'); setTimeout(() => el.remove(), 260); }
-  updateCounter();
-  updateRestoreBtn();
+  updateCounter(); updateRestoreBtn();
 }
 
 function toggleFavorite(idx) {
-  if (favorites.has(idx)) favorites.delete(idx);
-  else favorites.add(idx);
-  saveState();
-  updateCardVisual(idx);
+  if (favorites.has(idx)) favorites.delete(idx); else favorites.add(idx);
+  saveState(); updateCardVisual(idx);
 }
 
 function restoreAll() {
-  hidden.clear();
-  saveState();
-  updateRestoreBtn();
-  render();
+  hidden.clear(); saveState(); updateRestoreBtn(); render();
 }
 
 // ── Modal ──────────────────────────────────────────────────────
@@ -408,27 +558,41 @@ function openModal(idx) {
   modalEvIdx = idx;
   const [,, start, end, title, room, trilha] = ev;
   const cfg = TRILHAS[trilha];
-  const type = getType(title);
 
   const badge = document.getElementById('m-badge');
   badge.textContent = cfg.label;
   badge.style.cssText = `background:${cfg.color}18;color:${cfg.color};border:1px solid ${cfg.color}33`;
 
   document.getElementById('m-title').textContent =
-    title.replace(/\*[^*]*/g, '').replace(/\s+/g, ' ').trim();
+    title.replace(/\*[^*]*/g,'').replace(/\s+/g,' ').trim();
 
   document.getElementById('m-meta').innerHTML =
-    `<span>🕐 ${esc(start)} – ${esc(end)}</span>` +
-    `<span>📍 ${esc(room)}</span>` +
-    `<span>${type}</span>`;
+    `<span>🕐 ${esc(start)} – ${esc(end)}</span><span>📍 ${esc(room)}</span><span>${getType(title)}</span>`;
 
   const favBtn = document.getElementById('m-fav');
   favBtn.textContent = favorites.has(idx) ? '★ Favoritado' : '☆ Favoritar';
   favBtn.classList.toggle('on', favorites.has(idx));
 
+  updateModalRoutes(idx);
   document.getElementById('m-notes').value = notes[idx] || '';
-
   document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function updateModalRoutes(idx) {
+  const cur = getEvRoute(idx ?? modalEvIdx);
+  document.getElementById('m-routes').innerHTML =
+    [0,1,2,3].map(k =>
+      `<button class="route-btn${cur===k?' active':''}"
+        style="${cur===k ? `background:${ROUTE_COLORS[k]};border-color:${ROUTE_COLORS[k]};` : ''}"
+        onclick="modalSetRoute(${k})">${ROUTE_LABELS[k]}</button>`
+    ).join('');
+}
+
+function modalSetRoute(routeKey) {
+  if (modalEvIdx === null) return;
+  assignRoute(modalEvIdx, routeKey);
+  updateModalRoutes(modalEvIdx);
+  render();
 }
 
 function closeModal() {
@@ -439,24 +603,21 @@ function closeModal() {
 function modalToggleFav() {
   if (modalEvIdx === null) return;
   toggleFavorite(modalEvIdx);
-  const favBtn = document.getElementById('m-fav');
-  favBtn.textContent = favorites.has(modalEvIdx) ? '★ Favoritado' : '☆ Favoritar';
-  favBtn.classList.toggle('on', favorites.has(modalEvIdx));
+  const btn = document.getElementById('m-fav');
+  btn.textContent = favorites.has(modalEvIdx) ? '★ Favoritado' : '☆ Favoritar';
+  btn.classList.toggle('on', favorites.has(modalEvIdx));
 }
 
 function modalRemove() {
   if (modalEvIdx === null) return;
-  removeEvent(modalEvIdx);
-  closeModal();
+  removeEvent(modalEvIdx); closeModal();
 }
 
 document.getElementById('m-notes').addEventListener('input', () => {
   if (modalEvIdx === null) return;
   const text = document.getElementById('m-notes').value;
-  if (text.trim()) notes[modalEvIdx] = text;
-  else delete notes[modalEvIdx];
-  saveState();
-  updateCardVisual(modalEvIdx);
+  if (text.trim()) notes[modalEvIdx] = text; else delete notes[modalEvIdx];
+  saveState(); updateCardVisual(modalEvIdx);
 });
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
@@ -465,69 +626,89 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
 function render() {
   const totalH = (DAY_E - DAY_S) * PX;
 
+  // Time axis
   const axis = document.getElementById('time-axis');
   axis.style.height = (totalH + HDR_H + 8) + 'px';
   axis.innerHTML = '';
   for (let h = 10; h <= 19; h++) {
     const top = HDR_H + (h*60 - DAY_S) * PX;
-    const lbl = Object.assign(document.createElement('div'), {className:'time-label', textContent:h+':00'});
-    lbl.style.top = top + 'px';
-    axis.appendChild(lbl);
+    const l = Object.assign(document.createElement('div'),
+      {className:'time-label', textContent:h+':00'});
+    l.style.top = top + 'px'; axis.appendChild(l);
     if (h < 19) {
-      const lbl2 = Object.assign(document.createElement('div'), {className:'time-label half', textContent:h+':30'});
-      lbl2.style.top = (top + 30*PX) + 'px';
-      axis.appendChild(lbl2);
+      const l2 = Object.assign(document.createElement('div'),
+        {className:'time-label half', textContent:h+':30'});
+      l2.style.top = (top + 30*PX) + 'px'; axis.appendChild(l2);
     }
   }
 
+  // All visible events for this day
   const dayEvs = EV.filter(e => e[1] === currentDay && !hidden.has(e[0])).map(e => ({
     idx: e[0], start: e[2], end: e[3], title: e[4], room: e[5], trilha: e[6],
     startMin: toMin(e[2]), endMin: toMin(e[3]), type: getType(e[4])
   }));
 
-  const dayTrilhas = ORDER.filter(t => dayEvs.some(e => e.trilha === t));
   const wrap = document.getElementById('trilhas');
   wrap.innerHTML = '';
 
   if (dayEvs.length === 0) {
     wrap.innerHTML = '<div class="empty-day">Nenhum evento para exibir.<br><button class="empty-day-btn" onclick="restoreAll()">↺ Restaurar todos</button></div>';
-    updateCounter();
-    return;
+    updateCounter(); return;
   }
 
-  dayTrilhas.forEach(key => {
-    const cfg = TRILHAS[key];
+  ROUTE_COLS.forEach(routeCol => {
+    // Events for this column
+    const colEvs = routeCol.key === 0
+      ? dayEvs.filter(e => !routes[1].has(e.idx) && !routes[2].has(e.idx) && !routes[3].has(e.idx))
+      : dayEvs.filter(e => routes[routeCol.key].has(e.idx));
+
+    const {map: laneMap, n: numLanes} = assignLanes(colEvs);
+    const colWidth = Math.max(numLanes, 1) * CARD_W;
+
     const col = document.createElement('div');
     col.className = 'trilha-col';
+    col.dataset.route = routeCol.key;
+    col.style.width = colWidth + 'px';
 
+    // Header
     const hdr = document.createElement('div');
     hdr.className = 'trilha-hdr';
-    hdr.style.cssText = `background:${cfg.color}15;color:${cfg.color};border-bottom-color:${cfg.color};top:${STICKY_TOP}px;`;
-    hdr.textContent = cfg.label;
+    hdr.style.cssText =
+      `background:${routeCol.color}18;color:${routeCol.color};` +
+      `border-bottom-color:${routeCol.color};top:${STICKY_TOP}px;`;
+    const count = colEvs.length;
+    hdr.textContent = count > 0 ? `${routeCol.label} (${count})` : routeCol.label;
     col.appendChild(hdr);
 
+    // Body
     const body = document.createElement('div');
     body.className = 'trilha-body';
     body.style.height = totalH + 'px';
 
+    // Grid lines
     for (let h = 10; h <= 19; h++) {
       const top = (h*60 - DAY_S) * PX;
       const g = document.createElement('div');
-      g.className = 'grid-line hour'; g.style.top = top + 'px';
-      body.appendChild(g);
+      g.className = 'grid-line hour'; g.style.top = top + 'px'; body.appendChild(g);
       if (h < 19) {
         const g2 = document.createElement('div');
-        g2.className = 'grid-line half'; g2.style.top = (top + 30*PX) + 'px';
-        body.appendChild(g2);
+        g2.className = 'grid-line half'; g2.style.top = (top+30*PX)+'px'; body.appendChild(g2);
       }
     }
 
-    const colEvs = dayEvs.filter(e => e.trilha === key);
-    const {map: laneMap, n: numLanes} = assignLanes(colEvs);
-    const colWidth = Math.max(numLanes, 1) * CARD_W;
-    col.style.width = colWidth + 'px';
+    // Empty placeholder
+    if (colEvs.length === 0) {
+      const ph = document.createElement('div');
+      ph.className = 'col-empty';
+      ph.innerHTML = routeCol.key === 0
+        ? 'Todos os eventos<br>distribuídos ✓'
+        : 'Segure e arraste<br>eventos para cá';
+      body.appendChild(ph);
+    }
 
+    // Cards
     colEvs.forEach(e => {
+      const trilhaCfg = TRILHAS[e.trilha];
       const top = (e.startMin - DAY_S) * PX;
       const h = Math.max((e.endMin - e.startMin) * PX - 2, 18);
       const lane = laneMap[e.idx] || 0;
@@ -538,23 +719,23 @@ function render() {
       card.id = 'ev-' + e.idx;
       card.className = 'ev-card' + (isFaved ? ' faved' : '');
       card.style.cssText =
-        `top:${top}px;height:${h}px;border-left-color:${cfg.color};` +
+        `top:${top}px;height:${h}px;border-left-color:${trilhaCfg.color};` +
         `left:${lane * CARD_W + 1}px;width:${CARD_W - 3}px;`;
-      card.onclick = () => openModal(e.idx);
+
+      initCardPointerEvents(card, e.idx);
 
       const showMeta = h > 36;
       const showRoom = h > 56;
       const cleanTitle = esc(e.title.replace(/\*[^*]*/g,'').replace(/\s+/g,' ').trim());
 
       card.innerHTML =
-        `<button class="ev-fav${isFaved ? ' on' : ''}" onclick="event.stopPropagation();toggleFavorite(${e.idx})" title="Favoritar">★</button>` +
+        `<button class="ev-fav${isFaved?' on':''}" onclick="event.stopPropagation();toggleFavorite(${e.idx})" title="Favoritar">★</button>` +
         `<button class="ev-remove" onclick="event.stopPropagation();removeEvent(${e.idx})" title="Remover">✕</button>` +
         (hasNote ? `<div class="ev-note-badge"></div>` : '') +
         `<div class="ev-time">${e.start}–${e.end}</div>` +
         `<div class="ev-title">${cleanTitle}</div>` +
         (showMeta
-          ? `<div class="ev-meta">` +
-            `<span class="ev-type">${e.type}</span>` +
+          ? `<div class="ev-meta"><span class="ev-type">${e.type}</span>` +
             (showRoom ? `<span class="ev-room">📍 ${esc(e.room)}</span>` : '') +
             `</div>`
           : '');
@@ -566,11 +747,11 @@ function render() {
     wrap.appendChild(col);
   });
 
+  // Legend (trilha colors — helps identify card type)
   const leg = document.getElementById('legend');
-  leg.innerHTML = dayTrilhas.map(t => {
-    const c = TRILHAS[t];
-    return `<div class="leg-item"><div class="leg-dot" style="background:${c.color}"></div><span>${c.label}</span></div>`;
-  }).join('');
+  leg.innerHTML = Object.entries(TRILHAS).map(([,c]) =>
+    `<div class="leg-item"><div class="leg-dot" style="background:${c.color}"></div><span>${c.label}</span></div>`
+  ).join('');
 
   updateCounter();
   updateRestoreBtn();
