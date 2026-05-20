@@ -95,7 +95,9 @@ export const useAgendaStore = create<AgendaStore>()(
           routes[1].delete(idx);
           routes[2].delete(idx);
           routes[3].delete(idx);
-          if (route > 0) routes[route as 1 | 2 | 3].add(idx);
+          if (route === 1 || route === 2 || route === 3) {
+            routes[route].add(idx);
+          }
           return { routes };
         }),
     }),

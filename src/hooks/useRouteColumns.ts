@@ -6,7 +6,10 @@ import { assignLanes } from '../domain/eventUtils';
 import { useAgendaStore } from '../store/useAgendaStore';
 
 export function useRouteColumns(day: Day): RouteColumnData[] {
-  const { hidden, routes } = useAgendaStore();
+  const hidden  = useAgendaStore(s => s.hidden);
+  const routes1 = useAgendaStore(s => s.routes[1]);
+  const routes2 = useAgendaStore(s => s.routes[2]);
+  const routes3 = useAgendaStore(s => s.routes[3]);
 
   return useMemo(() => {
     const dayEvents = EVENTS.filter(e => e.day === day && !hidden.has(e.idx));
@@ -15,12 +18,15 @@ export function useRouteColumns(day: Day): RouteColumnData[] {
       const events =
         route.key === 0
           ? dayEvents.filter(
-              e => !routes[1].has(e.idx) && !routes[2].has(e.idx) && !routes[3].has(e.idx)
+              e => !routes1.has(e.idx) && !routes2.has(e.idx) && !routes3.has(e.idx)
             )
-          : dayEvents.filter(e => routes[route.key as 1 | 2 | 3].has(e.idx));
+          : dayEvents.filter(e => {
+              const set = route.key === 1 ? routes1 : route.key === 2 ? routes2 : routes3;
+              return set.has(e.idx);
+            });
 
       const { map: laneMap, n: numLanes } = assignLanes(events);
       return { route, events, laneMap, numLanes };
     });
-  }, [day, hidden, routes]);
+  }, [day, hidden, routes1, routes2, routes3]);
 }
