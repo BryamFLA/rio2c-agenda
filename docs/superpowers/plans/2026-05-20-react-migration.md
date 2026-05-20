@@ -2,11 +2,58 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Migrar o app `rio2c-agenda` de um único `index.html` vanilla para uma SPA React com TypeScript, Tailwind CSS, Zustand e @dnd-kit/core, mantendo toda a funcionalidade existente e deployando no GitHub Pages.
+**Goal:** Migrar o app `rio2c-agenda` de um único `index.html` vanilla para uma SPA React com TypeScript, Tailwind CSS, Zustand e @dnd-kit/core, aplicando o design system "Monochrome Logic" com layout responsivo: lista vertical no mobile, grid horizontal no desktop.
 
-**Architecture:** Camadas limpas — `data/` (dados estáticos) → `domain/` (lógica pura) → `store/` (Zustand + persist) → `hooks/` (React hooks) → `components/` (UI). Cada camada importa somente das camadas anteriores.
+**Architecture:** Camadas limpas — `data/` (dados estáticos) → `domain/` (lógica pura) → `store/` (Zustand + persist) → `hooks/` (React hooks) → `components/` (UI). Cada camada importa somente das camadas anteriores. Layout responsivo: `<MobileTimeline>` (< 768px) / `<Timeline>` (≥ 768px).
 
-**Tech Stack:** React 18, TypeScript 5, Vite 6, Tailwind CSS 3, Zustand 5, @dnd-kit/core 6, GitHub Pages
+**Tech Stack:** React 18, TypeScript 5, Vite 6, Tailwind CSS 3, Zustand 5, @dnd-kit/core 6, Inter (Google Fonts), GitHub Pages
+
+---
+
+## Design System — "Monochrome Logic"
+
+### Palette
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `surface` | `#f7f9fb` | Background geral |
+| `surface-container-lowest` | `#ffffff` | Cards, modais |
+| `surface-container` | `#eceef0` | Hover states |
+| `on-surface` | `#191c1e` | Texto primário |
+| `on-surface-variant` | `#47464b` | Texto secundário |
+| `outline` | `#78767b` | Bordas visíveis |
+| `outline-variant` | `#c8c5cb` | Bordas sutis |
+| `primary` | `#000000` | Botões primários, ativo |
+| `error` | `#ba1a1a` | Remover, erro |
+
+### Cores das trilhas (atualizadas)
+| Trilha | Cor antiga | Cor nova |
+|--------|-----------|---------|
+| games | `#7C3AED` | `#6366F1` |
+| creator | `#EA580C` | `#F59E0B` |
+| ia | `#2563EB` | `#0EA5E9` |
+| tech | `#0891B2` | `#10B981` |
+| marketing | `#DB2777` | `#EC4899` |
+| edu | `#16A34A` | `#8B5CF6` |
+
+### Tipografia
+- **Fonte:** Inter (Google Fonts) em toda a aplicação
+- **Títulos:** `font-semibold` / `font-bold`, `tracking-tight`
+- **Labels:** `uppercase`, `tracking-wide`, `text-[10px]`
+- **Numerics (horários):** `tabular-nums`
+
+### Componentes — regras visuais
+- **Cards:** `bg-white`, `border border-[#E2E8F0]`, `rounded-2xl`, `shadow-[0_4px_12px_rgba(0,0,0,0.03)]`, borda esquerda **2px** colorida (não 4px)
+- **Botões primários:** `bg-[#000000] text-white rounded-lg` (8px radius)
+- **Botões ghost:** `border border-[#c8c5cb] text-[#47464b] rounded-lg`
+- **Chips/tags:** `bg-[#eceef0] text-[#47464b]` (neutro, nunca colorido)
+- **Header:** `bg-white/80 backdrop-blur-[12px]` com `border-b border-[#eceef0]`
+- **Modal overlay:** `backdrop-blur-[12px] bg-black/40`
+- **Inputs/textarea:** `border border-[#e2e8f0]`, focus: `border-[#191c1e]` (charcoal 2px)
+- **Favorito ativo:** ★ sólido charcoal (`text-[#191c1e]`), inativo: outline gray
+
+### Layout responsivo
+- **Mobile (< 768px):** Lista vertical — time-axis 64px esquerdo + cards em coluna + route filter pills no header
+- **Desktop (≥ 768px):** Grid horizontal — 4 colunas de rota lado a lado + drag entre colunas
 
 ---
 
@@ -16,18 +63,18 @@
 |---------|-----------------|
 | `package.json` | dependências e scripts |
 | `vite.config.ts` | base path `/rio2c-agenda/` |
-| `tailwind.config.ts` | content paths |
+| `tailwind.config.ts` | tokens do design system + Inter |
 | `postcss.config.cjs` | tailwind + autoprefixer |
 | `tsconfig.json` + `tsconfig.app.json` | compilação TS |
-| `index.html` | root do Vite |
+| `index.html` | root do Vite + Google Fonts Inter |
 | `src/main.tsx` | entry point React |
 | `src/index.css` | @tailwind directives + globals |
-| `src/App.tsx` | estado do modal, orquestra componentes |
+| `src/App.tsx` | estado do modal + route filter mobile, layout responsivo |
 | `src/domain/constants.ts` | PX, DAY_S, DAY_E, CARD_W, HDR_H |
-| `src/domain/types.ts` | interfaces: AppEvent, TrilhaConfig, RouteCol, Day, etc. |
-| `src/domain/eventUtils.ts` | toMin, getType, assignLanes |
+| `src/domain/types.ts` | interfaces: AppEvent, TrilhaConfig, RouteCol, Day, MobileRouteFilter, etc. |
+| `src/domain/eventUtils.ts` | toMin, getType, assignLanes, groupEventsByTime |
 | `src/domain/timeUtils.ts` | getNowSP, isEventDay, NowSP |
-| `src/data/trilhas.ts` | TRILHAS: Record<TrilhaKey, TrilhaConfig> |
+| `src/data/trilhas.ts` | TRILHAS com cores atualizadas do design system |
 | `src/data/routes.ts` | ROUTE_COLS, ROUTE_COLORS, ROUTE_LABELS |
 | `src/data/events.ts` | EVENTS: AppEvent[] (135 eventos) |
 | `src/store/useAgendaStore.ts` | Zustand store + persist com Set serializer |
@@ -121,7 +168,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Criar `tailwind.config.ts`**
+- [ ] **Criar `tailwind.config.ts`** (com todos os tokens do design system)
 
 ```typescript
 import type { Config } from 'tailwindcss';
@@ -129,7 +176,54 @@ import type { Config } from 'tailwindcss';
 const config: Config = {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      colors: {
+        surface: {
+          DEFAULT:   '#f7f9fb',
+          dim:       '#d8dadc',
+          bright:    '#f7f9fb',
+          lowest:    '#ffffff',
+          low:       '#f2f4f6',
+          container: '#eceef0',
+          high:      '#e6e8ea',
+          highest:   '#e0e3e5',
+        },
+        'on-surface':         '#191c1e',
+        'on-surface-variant': '#47464b',
+        outline:              '#78767b',
+        'outline-variant':    '#c8c5cb',
+        primary:              '#000000',
+        'on-primary':         '#ffffff',
+        'primary-container':  '#1b1b1f',
+        error:                '#ba1a1a',
+        'error-container':    '#ffdad6',
+        // trilha accent colors
+        trilha: {
+          games:     '#6366F1',
+          creator:   '#F59E0B',
+          ia:        '#0EA5E9',
+          tech:      '#10B981',
+          marketing: '#EC4899',
+          edu:       '#8B5CF6',
+        },
+      },
+      boxShadow: {
+        card:    '0 4px 12px rgba(0,0,0,0.03)',
+        'card-hover': '0 4px 16px rgba(0,0,0,0.07)',
+        modal:   '0 20px 60px rgba(0,0,0,0.15)',
+      },
+      borderRadius: {
+        sm:  '0.25rem',
+        DEFAULT: '0.5rem',
+        md:  '0.75rem',
+        lg:  '1rem',
+        xl:  '1.5rem',
+        full: '9999px',
+      },
+    },
   },
   plugins: [],
 };
@@ -184,7 +278,7 @@ module.exports = {
 }
 ```
 
-- [ ] **Criar `index.html` (root do Vite)**
+- [ ] **Criar `index.html` (root do Vite, com Inter via Google Fonts)**
 
 ```html
 <!doctype html>
@@ -193,6 +287,12 @@ module.exports = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <title>RIO2C 2026 — Minha Agenda</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>
@@ -338,6 +438,15 @@ export interface RouteColumnData {
   laneMap:  Record<number, number>;
   numLanes: number;
 }
+
+/** Grupo de eventos com o mesmo horário de início — usado no layout mobile */
+export interface TimeGroup {
+  time:   string;        // "HH:MM"
+  events: AppEvent[];
+}
+
+/** Filtro de rota no mobile: 'all' = todas, 1/2/3 = rota específica */
+export type MobileRouteFilter = 'all' | 1 | 2 | 3;
 ```
 
 - [ ] **Verificar compilação**
@@ -422,6 +531,21 @@ export function assignLanes(events: AppEvent[]): LaneAssignment {
 export function cleanTitle(title: string): string {
   return title.replace(/\*[^*]*/g, '').replace(/\s+/g, ' ').trim();
 }
+
+/**
+ * Agrupa eventos por horário de início — usado no layout mobile.
+ * Retorna TimeGroup[] ordenado cronologicamente.
+ */
+export function groupEventsByTime(events: AppEvent[]): import('./types').TimeGroup[] {
+  const map = new Map<string, AppEvent[]>();
+  const sorted = [...events].sort((a, b) => a.startMin - b.startMin);
+  sorted.forEach(e => {
+    const list = map.get(e.start) ?? [];
+    list.push(e);
+    map.set(e.start, list);
+  });
+  return Array.from(map.entries()).map(([time, evs]) => ({ time, events: evs }));
+}
 ```
 
 - [ ] **Criar `src/domain/timeUtils.ts`**
@@ -492,18 +616,18 @@ git commit -m "feat: domain utilities (eventUtils, timeUtils)"
 - Create: `src/data/routes.ts`
 - Create: `src/data/events.ts`
 
-- [ ] **Criar `src/data/trilhas.ts`**
+- [ ] **Criar `src/data/trilhas.ts`** (cores atualizadas pelo design system "Monochrome Logic")
 
 ```typescript
 import type { TrilhaKey, TrilhaConfig } from '../domain/types';
 
 export const TRILHAS: Record<TrilhaKey, TrilhaConfig> = {
-  games:     { label: '🎮 Games & Esports',      color: '#7C3AED' },
-  creator:   { label: '💡 Creator Economy',      color: '#EA580C' },
-  ia:        { label: '🤖 IA & Futuro Digital',  color: '#2563EB' },
-  tech:      { label: '💻 Tech & Produção',      color: '#0891B2' },
-  marketing: { label: '📣 Marketing & Marcas',   color: '#DB2777' },
-  edu:       { label: '🎓 Educação & Carreira',  color: '#16A34A' },
+  games:     { label: '🎮 Games & eSports',      color: '#6366F1' },
+  creator:   { label: '💡 Creator Economy',      color: '#F59E0B' },
+  ia:        { label: '🤖 Tecnologia & IA',      color: '#0EA5E9' },
+  tech:      { label: '💻 Tech & Produção',      color: '#10B981' },
+  marketing: { label: '📣 Marketing & Marcas',   color: '#EC4899' },
+  edu:       { label: '🎓 Educação & Carreira',  color: '#8B5CF6' },
 };
 ```
 
@@ -1554,6 +1678,246 @@ git commit -m "feat: RouteColumn with useDroppable and NowIndicator"
 
 ---
 
+## Task 11a: MobileEventCard
+
+**Files:**
+- Create: `src/components/mobile/MobileEventCard.tsx`
+
+Layout do card mobile conforme design "Monochrome Logic": fundo branco, borda 1px `#E2E8F0`, borda esquerda **2px** colorida pela trilha, trilha label colorida uppercase, título bold, localização à direita, duração em minutos.
+
+- [ ] **Criar `src/components/mobile/MobileEventCard.tsx`**
+
+```tsx
+import type { AppEvent } from '../../domain/types';
+import { TRILHAS } from '../../data/trilhas';
+import { useAgendaStore } from '../../store/useAgendaStore';
+import { getType, cleanTitle } from '../../domain/eventUtils';
+
+interface MobileEventCardProps {
+  event:  AppEvent;
+  onTap:  (idx: number) => void;
+}
+
+export function MobileEventCard({ event, onTap }: MobileEventCardProps) {
+  const { favorites, notes, hideEvent, toggleFavorite } = useAgendaStore();
+
+  const trilhaCfg = TRILHAS[event.trilha];
+  const isFaved   = favorites.has(event.idx);
+  const hasNote   = !!(notes[event.idx]?.trim());
+  const type      = getType(event.title);
+  const title     = cleanTitle(event.title);
+  const durationMin = event.endMin - event.startMin;
+
+  return (
+    <div
+      className="relative bg-white border border-[#E2E8F0] rounded-2xl shadow-card active:shadow-card-hover transition-shadow cursor-pointer overflow-hidden"
+      style={{ borderLeftWidth: 2, borderLeftColor: trilhaCfg.color }}
+      onClick={() => onTap(event.idx)}
+    >
+      {/* Linha superior: trilha label + localização */}
+      <div className="flex items-center justify-between px-3 pt-2.5 pb-1">
+        <span
+          className="text-[10px] font-bold uppercase tracking-[0.05em]"
+          style={{ color: trilhaCfg.color }}
+        >
+          {trilhaCfg.label.replace(/^[^\w]+/, '')}
+        </span>
+        <span className="text-[10px] text-[#78767b] flex items-center gap-1 truncate max-w-[140px]">
+          📍 {event.room}
+        </span>
+      </div>
+
+      {/* Título */}
+      <div className="px-3 pb-1 text-[14px] font-semibold leading-snug text-[#191c1e]">
+        {title}
+      </div>
+
+      {/* Rodapé: tipo + duração + favorito + nota */}
+      <div className="flex items-center justify-between px-3 pb-2.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] bg-[#eceef0] text-[#47464b] px-2 py-0.5 rounded-full font-medium">
+            {type}
+          </span>
+          <span className="text-[10px] text-[#78767b] tabular-nums">
+            {durationMin} min
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {hasNote && (
+            <span className="text-[10px] text-indigo-400">●</span>
+          )}
+          <button
+            className={`text-[16px] leading-none border-none bg-transparent transition-colors ${
+              isFaved ? 'text-[#191c1e]' : 'text-[#c8c5cb]'
+            } hover:text-[#191c1e]`}
+            onClick={e => { e.stopPropagation(); toggleFavorite(event.idx); }}
+            title="Favoritar"
+          >
+            ★
+          </button>
+          <button
+            className="text-[11px] text-[#c8c5cb] hover:text-[#ba1a1a] transition-colors border-none bg-transparent"
+            onClick={e => { e.stopPropagation(); hideEvent(event.idx); }}
+            title="Remover"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+- [ ] **Verificar compilação**
+
+```bash
+npx tsc --noEmit
+```
+
+- [ ] **Commit**
+
+```bash
+git add src/components/mobile/MobileEventCard.tsx
+git commit -m "feat: MobileEventCard — design Monochrome Logic"
+```
+
+---
+
+## Task 11b: MobileTimeline
+
+**Files:**
+- Create: `src/components/mobile/MobileTimeline.tsx`
+
+Layout vertical conforme screenshot do design: eixo de tempo à esquerda (64px), linha vertical cinza, cards à direita agrupados por horário. Route filter pills no topo. Now indicator como linha horizontal vermelha sobre o eixo.
+
+- [ ] **Criar `src/components/mobile/MobileTimeline.tsx`**
+
+```tsx
+import type { Day, MobileRouteFilter } from '../../domain/types';
+import { EVENTS } from '../../data/events';
+import { ROUTE_COLS } from '../../data/routes';
+import { useAgendaStore } from '../../store/useAgendaStore';
+import { useNowIndicator } from '../../hooks/useNowIndicator';
+import { groupEventsByTime, cleanTitle } from '../../domain/eventUtils';
+import { DAY_S, PX } from '../../domain/constants';
+import { MobileEventCard } from './MobileEventCard';
+
+interface MobileTimelineProps {
+  mobileFilter:    MobileRouteFilter;
+  onFilterChange:  (f: MobileRouteFilter) => void;
+  onTapEvent:      (idx: number) => void;
+}
+
+export function MobileTimeline({ mobileFilter, onFilterChange, onTapEvent }: MobileTimelineProps) {
+  const { currentDay, hidden, routes } = useAgendaStore();
+  const nowData = useNowIndicator(currentDay as Day);
+
+  // Filtrar eventos do dia
+  const dayEvents = EVENTS.filter(e => e.day === currentDay && !hidden.has(e.idx));
+
+  // Aplicar filtro de rota
+  const filtered =
+    mobileFilter === 'all'
+      ? dayEvents
+      : dayEvents.filter(e => routes[mobileFilter].has(e.idx));
+
+  const groups = groupEventsByTime(filtered);
+
+  const ROUTE_FILTERS: { key: MobileRouteFilter; label: string }[] = [
+    { key: 'all', label: 'Todas as Rotas' },
+    { key: 1,     label: 'Rota 1' },
+    { key: 2,     label: 'Rota 2' },
+    { key: 3,     label: 'Rota 3' },
+  ];
+
+  return (
+    <div className="flex flex-col min-h-screen bg-surface">
+      {/* Route filter pills */}
+      <div className="sticky top-[72px] z-[150] bg-surface/80 backdrop-blur-[8px] border-b border-[#eceef0] px-4 py-2">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-[#78767b] mb-1.5">
+          Rotas
+        </p>
+        <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+          {ROUTE_FILTERS.map(f => (
+            <button
+              key={String(f.key)}
+              onClick={() => onFilterChange(f.key)}
+              className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-semibold border transition-all ${
+                mobileFilter === f.key
+                  ? 'bg-[#191c1e] text-white border-[#191c1e]'
+                  : 'bg-white text-[#47464b] border-[#c8c5cb] hover:border-[#78767b]'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Lista de eventos */}
+      <div className="flex-1 px-0 py-4">
+        {groups.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-[#78767b] text-sm gap-3">
+            <span>Nenhum evento nesta rota.</span>
+            {mobileFilter !== 'all' && (
+              <button
+                onClick={() => onFilterChange('all')}
+                className="px-4 py-2 bg-[#191c1e] text-white rounded-lg text-[13px] font-semibold"
+              >
+                Ver todas as rotas
+              </button>
+            )}
+          </div>
+        ) : (
+          groups.map(group => (
+            <div key={group.time} className="flex gap-0 mb-6">
+              {/* Eixo de tempo — 64px */}
+              <div className="w-16 flex-shrink-0 flex flex-col items-end pr-3 pt-1">
+                <span className="text-[14px] font-semibold text-[#191c1e] tabular-nums">
+                  {group.time}
+                </span>
+                <span className="text-[11px] text-[#78767b] tabular-nums">
+                  {group.events[0].endMin - group.events[0].startMin} min
+                </span>
+              </div>
+
+              {/* Linha vertical + conteúdo */}
+              <div className="flex gap-3 flex-1 relative">
+                {/* Linha vertical */}
+                <div className="w-px bg-[#E2E8F0] self-stretch mx-0" />
+
+                {/* Cards */}
+                <div className="flex flex-col gap-2 flex-1 min-w-0 pr-4">
+                  {group.events.map(e => (
+                    <MobileEventCard key={e.idx} event={e} onTap={onTapEvent} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+- [ ] **Verificar compilação**
+
+```bash
+npx tsc --noEmit
+```
+
+- [ ] **Commit**
+
+```bash
+git add src/components/mobile/
+git commit -m "feat: MobileTimeline — layout vertical com route filter e now indicator"
+```
+
+---
+
 ## Task 11: Timeline (DndContext + DragOverlay)
 
 **Files:**
@@ -1840,7 +2204,7 @@ git commit -m "feat: EventModal with routes, notes, favorite, remove"
 
 ---
 
-## Task 13: App.tsx — wiring final
+## Task 13: App.tsx — wiring final responsivo
 
 **Files:**
 - Modify: `src/App.tsx`
@@ -1848,17 +2212,31 @@ git commit -m "feat: EventModal with routes, notes, favorite, remove"
 - [ ] **Reescrever `src/App.tsx` completo**
 
 ```tsx
-import { useState } from 'react';
-import type { AppEvent } from './domain/types';
+import { useState, useEffect } from 'react';
+import type { AppEvent, MobileRouteFilter } from './domain/types';
 import { EVENTS } from './data/events';
 import { useAgendaStore } from './store/useAgendaStore';
 import { Header } from './components/layout/Header';
 import { Timeline } from './components/timeline/Timeline';
+import { MobileTimeline } from './components/mobile/MobileTimeline';
 import { EventModal } from './components/modal/EventModal';
+
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isMobile;
+}
 
 export default function App() {
   const [modalEvent, setModalEvent] = useState<AppEvent | null>(null);
+  const [mobileFilter, setMobileFilter] = useState<MobileRouteFilter>('all');
   const { hidden } = useAgendaStore();
+  const isMobile = useIsMobile();
 
   function openModal(idx: number) {
     if (hidden.has(idx)) return;
@@ -1867,9 +2245,17 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f0f2f8] text-[#1a1a2e]">
+    <div className="min-h-screen bg-surface font-sans text-on-surface">
       <Header />
-      <Timeline onTapEvent={openModal} />
+      {isMobile ? (
+        <MobileTimeline
+          mobileFilter={mobileFilter}
+          onFilterChange={setMobileFilter}
+          onTapEvent={openModal}
+        />
+      ) : (
+        <Timeline onTapEvent={openModal} />
+      )}
       {modalEvent && (
         <EventModal event={modalEvent} onClose={() => setModalEvent(null)} />
       )}
@@ -1991,12 +2377,17 @@ Acessar `https://bryamfla.github.io/rio2c-agenda/` e confirmar que a versão Rea
 
 ## Self-Review
 
-**Cobertura da spec:**
-- ✅ Timeline horizontal com eixo de horários
-- ✅ 4 colunas de rotas (Rota 1, 2, 3, Disponíveis)
+**Cobertura da spec + design system:**
+- ✅ Timeline horizontal com eixo de horários (desktop)
+- ✅ Layout vertical mobile com time-axis 64px (Task 11a/11b)
+- ✅ Route filter pills no mobile (Task 11b)
+- ✅ 4 colunas de rotas (Rota 1, 2, 3, Disponíveis) no desktop
 - ✅ Cards com trilha, favorito, badge de nota, remoção
-- ✅ Modal completo
-- ✅ Drag and drop via @dnd-kit (corrigido)
+- ✅ Design "Monochrome Logic": Inter, `#f7f9fb` bg, white cards, 1px border, 2px strip
+- ✅ Cores das trilhas atualizadas (Task 4 + tailwind.config)
+- ✅ Header glassmorphism backdrop-blur
+- ✅ Modal frosted glass overlay
+- ✅ Drag and drop via @dnd-kit (desktop)
 - ✅ Indicador de horário atual (SP)
 - ✅ Persistência localStorage via Zustand persist
 - ✅ Legenda de trilhas no header
@@ -2006,7 +2397,11 @@ Acessar `https://bryamfla.github.io/rio2c-agenda/` e confirmar que a versão Rea
 
 **Tipos consistentes entre tasks:**
 - `AppEvent` definido em Task 2, usado em Tasks 9–13 ✅
+- `MobileRouteFilter` definido em Task 2, usado em Tasks 11b e 13 ✅
+- `TimeGroup` definido em Task 2, usado em Task 11b ✅
 - `RouteColumnData` definido em Task 2, usado em Tasks 6, 10 ✅
 - `NowIndicatorData` definido em Task 2, usado em Tasks 6, 8, 10, 11 ✅
 - `assignRoute(idx, RouteKey)` no store (Task 5), chamado em Timeline (Task 11) e Modal (Task 12) ✅
+- `groupEventsByTime` definido em Task 3, usado em Task 11b ✅
 - `CARD_W`, `PX`, `DAY_S`, `DAY_E` em constants (Task 2), usados em Tasks 9–11 ✅
+- Tailwind tokens (`bg-surface`, `text-on-surface`, `font-sans`) configurados na Task 1, usados em Tasks 7–13 ✅
