@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import type { Day } from '../../domain/types';
 import { EVENTS } from '../../data/events';
 import { TRILHAS } from '../../data/trilhas';
@@ -14,12 +15,25 @@ const DAYS: { day: Day; label: string }[] = [
 ];
 
 export function Header() {
-  const { currentDay, hidden, routes, setDay, restoreAll } = useAgendaStore();
-  const nowData = useNowIndicator(currentDay);
+  const currentDay = useAgendaStore(s => s.currentDay);
+  const hidden     = useAgendaStore(s => s.hidden);
+  const routes     = useAgendaStore(s => s.routes);
+  const setDay     = useAgendaStore(s => s.setDay);
+  const restoreAll = useAgendaStore(s => s.restoreAll);
+  const nowData    = useNowIndicator(currentDay);
 
-  const dayTotal = EVENTS.filter(e => e.day === currentDay && !hidden.has(e.idx)).length;
-  const inRoutes = [...routes[1], ...routes[2], ...routes[3]]
-    .filter(idx => EVENTS.some(e => e.idx === idx && e.day === currentDay)).length;
+  const dayIdxSet = useMemo(
+    () => new Set(EVENTS.filter(e => e.day === currentDay).map(e => e.idx)),
+    [currentDay]
+  );
+  const dayTotal = useMemo(
+    () => EVENTS.filter(e => dayIdxSet.has(e.idx) && !hidden.has(e.idx)).length,
+    [dayIdxSet, hidden]
+  );
+  const inRoutes = useMemo(() => {
+    const routeIdxs = [...routes[1], ...routes[2], ...routes[3]];
+    return routeIdxs.filter(idx => dayIdxSet.has(idx)).length;
+  }, [routes, dayIdxSet]);
   const avail = dayTotal - inRoutes;
 
   const sp = getNowSP();
@@ -60,8 +74,8 @@ export function Header() {
         </div>
       </div>
       <div className="flex flex-wrap gap-2.5 mt-2.5">
-        {Object.values(TRILHAS).map(cfg => (
-          <div key={cfg.label} className="flex items-center gap-1 text-[11px] font-medium opacity-85">
+        {Object.entries(TRILHAS).map(([key, cfg]) => (
+          <div key={key} className="flex items-center gap-1 text-[11px] font-medium opacity-85">
             <div className="w-2.5 h-2.5 rounded-[3px]" style={{ background: cfg.color }} />
             <span>{cfg.label}</span>
           </div>
