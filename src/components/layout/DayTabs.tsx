@@ -21,7 +21,7 @@ export function DayTabs({ className = '' }: DayTabsProps) {
         <button
           key={day}
           onClick={() => setDay(day)}
-          aria-current={currentDay === day ? true : undefined}
+          aria-current={currentDay === day ? 'date' : undefined}
           className={`pb-1.5 text-[13px] font-semibold transition-colors border-b-2 ${
             currentDay === day
               ? 'border-[#191c1e] text-[#191c1e]'
