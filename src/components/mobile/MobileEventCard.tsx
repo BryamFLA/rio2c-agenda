@@ -1,65 +1,58 @@
 import type { AppEvent } from '../../domain/types';
 import { TRILHAS } from '../../data/trilhas';
 import { useAgendaStore } from '../../store/useAgendaStore';
-import { getType, cleanTitle } from '../../domain/eventUtils';
+import { cleanTitle } from '../../domain/eventUtils';
 
 interface MobileEventCardProps {
-  event:  AppEvent;
-  onTap:  (idx: number) => void;
+  event: AppEvent;
+  onTap: (idx: number) => void;
 }
 
 export function MobileEventCard({ event, onTap }: MobileEventCardProps) {
-  const { favorites, notes, hideEvent, toggleFavorite } = useAgendaStore();
+  const isFaved        = useAgendaStore(s => s.favorites.has(event.idx));
+  const hasNote        = useAgendaStore(s => !!(s.notes[event.idx]?.trim()));
+  const toggleFavorite = useAgendaStore(s => s.toggleFavorite);
+  const hideEvent      = useAgendaStore(s => s.hideEvent);
 
   const trilhaCfg   = TRILHAS[event.trilha];
-  const isFaved     = favorites.has(event.idx);
-  const hasNote     = !!(notes[event.idx]?.trim());
-  const type        = getType(event.title);
   const title       = cleanTitle(event.title);
   const durationMin = event.endMin - event.startMin;
+  const trilhaLabel = trilhaCfg.label.replace(/^\p{Emoji_Presentation}\s*/u, '');
 
   return (
     <div
-      className="relative bg-white border border-[#E2E8F0] rounded-2xl shadow-card active:shadow-card-hover transition-shadow cursor-pointer overflow-hidden"
-      style={{ borderLeftWidth: 2, borderLeftColor: trilhaCfg.color }}
+      className={`relative border border-[#E2E8F0] rounded-xl shadow-[0_1px_3px_rgba(0,0,0,0.06)] cursor-pointer overflow-hidden transition-shadow active:shadow-[0_2px_6px_rgba(0,0,0,0.10)] ${isFaved ? 'bg-amber-50' : 'bg-white'}`}
+      style={{ borderLeftWidth: 3, borderLeftColor: trilhaCfg.color }}
       onClick={() => onTap(event.idx)}
     >
-      {/* Linha superior: trilha label + localização */}
+      {/* Header: trilha label + room */}
       <div className="flex items-center justify-between px-3 pt-2.5 pb-1">
         <span
-          className="text-[10px] font-bold uppercase tracking-[0.05em]"
+          className="text-[10px] font-extrabold uppercase tracking-[0.06em]"
           style={{ color: trilhaCfg.color }}
         >
-          {trilhaCfg.label.replace(/^[^\w]+/, '')}
+          {trilhaLabel}
         </span>
-        <span className="text-[10px] text-[#78767b] flex items-center gap-1 truncate max-w-[140px]">
-          📍 {event.room}
+        <span className="text-[10px] text-[#78767b] flex items-center gap-0.5 truncate max-w-[130px] ml-2">
+          <span className="text-[9px]">📍</span>
+          <span className="truncate">{event.room}</span>
         </span>
       </div>
 
-      {/* Título */}
-      <div className="px-3 pb-1 text-[14px] font-semibold leading-snug text-[#191c1e]">
+      {/* Title */}
+      <div className="px-3 pb-2 text-[14px] font-semibold leading-snug text-[#191c1e]">
         {title}
       </div>
 
-      {/* Rodapé: tipo + duração + favorito + nota */}
-      <div className="flex items-center justify-between px-3 pb-2.5">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] bg-[#eceef0] text-[#47464b] px-2 py-0.5 rounded-full font-medium">
-            {type}
-          </span>
-          <span className="text-[10px] text-[#78767b] tabular-nums">
-            {durationMin} min
-          </span>
-        </div>
+      {/* Footer */}
+      <div className="flex items-center justify-between px-3 pb-2.5 pt-1.5 border-t border-[#F2F2F5]">
+        <span className="text-[10px] text-[#78767b] tabular-nums">{durationMin} min</span>
         <div className="flex items-center gap-2">
-          {hasNote && (
-            <span className="text-[10px] text-indigo-400">●</span>
-          )}
+          {hasNote && <span className="text-[10px] text-indigo-400">●</span>}
           <button
-            className={`text-[16px] leading-none border-none bg-transparent transition-colors ${
-              isFaved ? 'text-[#191c1e]' : 'text-[#c8c5cb]'
-            } hover:text-[#191c1e]`}
+            className={`text-[15px] leading-none border-none bg-transparent transition-colors ${
+              isFaved ? 'text-amber-400' : 'text-[#c8c5cb]'
+            } hover:text-amber-400`}
             onClick={e => { e.stopPropagation(); toggleFavorite(event.idx); }}
             title="Favoritar"
           >
