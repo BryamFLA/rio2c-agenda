@@ -30,7 +30,6 @@ const raw: RawEvent[] = [
   [21, 27, "10:00", "11:00", "Energia que Move o Jogo: Projetos que Transformam Vidas", "SportsON", "games"],
   [22, 27, "10:15", "11:15", "Leitores do Tempo MMXXVI", "Future.U", "edu"],
   [23, 27, "10:15", "11:15", "SAV Apresenta: Construindo a Próxima Década de Crescimento do Audiovisual Brasileiro", "StoryVillage", "marketing"],
-  [24, 27, "10:15", "11:15", "SAV Apresenta: Construindo a Próxima Década de Crescimento do Audiovisual Brasileiro", "StoryVillage", "marketing"],
   [25, 27, "10:30", "11:30", "VFX e IA: As Novas Fronteiras", "Bits", "ia"],
   [26, 27, "10:30", "11:30", "Sustentabilidade na Música", "Soundbeats II", "marketing"],
   [27, 27, "10:30", "11:30", "Vestir Uma Ideia: Criação e Mercado na Mesma Direção", "Arts & Crafts", "tech"],

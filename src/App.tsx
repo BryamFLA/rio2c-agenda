@@ -21,8 +21,12 @@ function useIsMobile(): boolean {
 export default function App() {
   const [modalEvent, setModalEvent] = useState<AppEvent | null>(null);
   const [mobileFilter, setMobileFilter] = useState<MobileRouteFilter>('all');
-  const hidden   = useAgendaStore(s => s.hidden);
-  const isMobile = useIsMobile();
+  const hidden     = useAgendaStore(s => s.hidden);
+  const currentDay = useAgendaStore(s => s.currentDay);
+  const isMobile   = useIsMobile();
+
+  // Reset the route filter when the user switches days so stale pills don't confuse
+  useEffect(() => { setMobileFilter('all'); }, [currentDay]);
 
   function openModal(idx: number) {
     if (hidden.has(idx)) return;

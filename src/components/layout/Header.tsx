@@ -4,8 +4,6 @@ import { EVENTS } from '../../data/events';
 import { TRILHAS } from '../../data/trilhas';
 import { useAgendaStore } from '../../store/useAgendaStore';
 import { useNowIndicator } from '../../hooks/useNowIndicator';
-import { getNowSP, isEventDay } from '../../domain/timeUtils';
-import { DAY_S, DAY_E } from '../../domain/constants';
 import { LiveBadge } from './LiveBadge';
 
 const DAYS: { day: Day; label: string }[] = [
@@ -36,8 +34,8 @@ export function Header() {
   }, [routes, dayIdxSet]);
   const avail = dayTotal - inRoutes;
 
-  const sp = getNowSP();
-  const showLive = isEventDay(sp) && sp.totalMin >= DAY_S && sp.totalMin <= DAY_E;
+  // nowData is non-null only during event hours on event days — safe as showLive gate
+  const showLive = nowData !== null;
 
   return (
     <header className="bg-[#1a1a2e] text-white px-4 py-3 sticky top-0 z-[200] shadow-[0_2px_10px_rgba(0,0,0,0.4)]">
