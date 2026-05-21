@@ -1,8 +1,8 @@
 import type { Day, MobileRouteFilter } from '../../domain/types';
 import { EVENTS } from '../../data/events';
 import { useAgendaStore } from '../../store/useAgendaStore';
-import { useNowIndicator } from '../../hooks/useNowIndicator';
 import { groupEventsByTime } from '../../domain/eventUtils';
+import { TrilhaLegend } from '../layout/TrilhaLegend';
 import { MobileEventCard } from './MobileEventCard';
 
 interface MobileTimelineProps {
@@ -11,6 +11,13 @@ interface MobileTimelineProps {
   onTapEvent:     (idx: number) => void;
 }
 
+const ROUTE_FILTERS: { key: MobileRouteFilter; label: string }[] = [
+  { key: 'all', label: 'Todas as Rotas' },
+  { key: 1,     label: 'Rota 1' },
+  { key: 2,     label: 'Rota 2' },
+  { key: 3,     label: 'Rota 3' },
+];
+
 export function MobileTimeline({ mobileFilter, onFilterChange, onTapEvent }: MobileTimelineProps) {
   const currentDay = useAgendaStore(s => s.currentDay);
   const hidden     = useAgendaStore(s => s.hidden);
@@ -18,12 +25,8 @@ export function MobileTimeline({ mobileFilter, onFilterChange, onTapEvent }: Mob
   const routes2    = useAgendaStore(s => s.routes[2]);
   const routes3    = useAgendaStore(s => s.routes[3]);
 
-  useNowIndicator(currentDay as Day);  // keep the now-indicator polling active
+  const dayEvents = EVENTS.filter(e => e.day === (currentDay as Day) && !hidden.has(e.idx));
 
-  // Filter events for current day
-  const dayEvents = EVENTS.filter(e => e.day === currentDay && !hidden.has(e.idx));
-
-  // Apply route filter
   const filtered =
     mobileFilter === 'all'
       ? dayEvents
@@ -33,18 +36,12 @@ export function MobileTimeline({ mobileFilter, onFilterChange, onTapEvent }: Mob
 
   const groups = groupEventsByTime(filtered);
 
-  const ROUTE_FILTERS: { key: MobileRouteFilter; label: string }[] = [
-    { key: 'all', label: 'Todas as Rotas' },
-    { key: 1,     label: 'Rota 1' },
-    { key: 2,     label: 'Rota 2' },
-    { key: 3,     label: 'Rota 3' },
-  ];
-
   return (
-    <div className="flex flex-col min-h-screen bg-surface">
-      {/* Route filter pills */}
-      <div className="sticky top-[72px] z-[150] bg-surface/80 backdrop-blur-[8px] border-b border-[#eceef0] px-4 py-2">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-[#78767b] mb-1.5">
+    <div className="flex flex-col min-h-screen bg-white">
+
+      {/* Sticky route filter pills — top-[80px] matches MobileHeader height */}
+      <div className="sticky top-[80px] z-[150] bg-white/90 backdrop-blur-[8px] border-b border-[#E2E8F0] px-4 py-2">
+        <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#78767b] mb-1.5">
           Rotas
         </p>
         <div className="flex gap-2 overflow-x-auto pb-0.5">
@@ -64,10 +61,20 @@ export function MobileTimeline({ mobileFilter, onFilterChange, onTapEvent }: Mob
         </div>
       </div>
 
-      {/* Event list */}
-      <div className="flex-1 py-4">
+      {/* Scrollable content */}
+      <div className="flex-1 pt-4 pb-8">
+
+        {/* Trilha legend */}
+        <div className="px-4 mb-5">
+          <p className="text-[9px] font-extrabold uppercase tracking-[0.12em] text-[#78767b] mb-2">
+            Trilhas/Temas
+          </p>
+          <TrilhaLegend />
+        </div>
+
+        {/* Event groups */}
         {groups.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-[#78767b] text-sm gap-3">
+          <div className="flex flex-col items-center justify-center py-12 text-[#78767b] text-sm gap-3">
             <span>Nenhum evento nesta rota.</span>
             {mobileFilter !== 'all' && (
               <button
@@ -81,13 +88,12 @@ export function MobileTimeline({ mobileFilter, onFilterChange, onTapEvent }: Mob
         ) : (
           groups.map(group => (
             <div key={group.time} className="flex gap-0 mb-6">
-              {/* Time axis — 64px */}
+              {/* Time axis — 64 px */}
               <div className="w-16 flex-shrink-0 flex flex-col items-end pr-3 pt-1">
                 <span className="text-[14px] font-semibold text-[#191c1e] tabular-nums">
                   {group.time}
                 </span>
               </div>
-
               {/* Vertical line + cards */}
               <div className="flex gap-3 flex-1 relative">
                 <div className="w-px bg-[#E2E8F0] self-stretch" />
