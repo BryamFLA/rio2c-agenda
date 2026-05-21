@@ -32,8 +32,14 @@ const initialState: AgendaState = {
 // Serializer customizado para Set (JSON.stringify não suporta Set nativamente)
 const storage = createJSONStorage(() => localStorage, {
   reviver: (_key, value) => {
-    if (value && typeof value === 'object' && value.__type === 'Set') {
-      return new Set(value.values as number[]);
+    if (
+      value !== null &&
+      typeof value === 'object' &&
+      '__type' in value &&
+      (value as Record<string, unknown>).__type === 'Set' &&
+      'values' in value
+    ) {
+      return new Set((value as Record<string, unknown>).values as number[]);
     }
     return value;
   },
