@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import type { AppEvent, MobileRouteFilter } from './domain/types';
 import { EVENTS } from './data/events';
 import { useAgendaStore } from './store/useAgendaStore';
-import { Header } from './components/layout/Header';
+import { Sidebar } from './components/layout/Sidebar';
+import { MobileHeader } from './components/layout/MobileHeader';
 import { Timeline } from './components/timeline/Timeline';
 import { MobileTimeline } from './components/mobile/MobileTimeline';
 import { EventModal } from './components/modal/EventModal';
@@ -25,7 +26,6 @@ export default function App() {
   const currentDay = useAgendaStore(s => s.currentDay);
   const isMobile   = useIsMobile();
 
-  // Reset the route filter when the user switches days so stale pills don't confuse
   useEffect(() => { setMobileFilter('all'); }, [currentDay]);
 
   function openModal(idx: number) {
@@ -33,21 +33,27 @@ export default function App() {
     setModalEvent(EVENTS.find(e => e.idx === idx) ?? null);
   }
 
-  return (
-    <div className="min-h-screen bg-surface font-sans text-on-surface">
-      <Header />
-      {isMobile ? (
+  if (isMobile) {
+    return (
+      <div className="flex flex-col min-h-screen bg-white font-sans text-on-surface">
+        <MobileHeader />
         <MobileTimeline
           mobileFilter={mobileFilter}
           onFilterChange={setMobileFilter}
           onTapEvent={openModal}
         />
-      ) : (
+        {modalEvent && <EventModal event={modalEvent} onClose={() => setModalEvent(null)} />}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-[#f5f5f5] font-sans text-on-surface">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <Timeline onTapEvent={openModal} />
-      )}
-      {modalEvent && (
-        <EventModal event={modalEvent} onClose={() => setModalEvent(null)} />
-      )}
+      </div>
+      {modalEvent && <EventModal event={modalEvent} onClose={() => setModalEvent(null)} />}
     </div>
   );
 }
