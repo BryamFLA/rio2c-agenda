@@ -45,7 +45,7 @@ export function EventCard({ event, lane, onTap, isDragOverlay = false }: EventCa
       ref={setNodeRef}
       {...(isDragOverlay ? {} : listeners)}
       {...(isDragOverlay ? {} : attributes)}
-      className={`${isDragOverlay ? 'relative' : 'absolute'} rounded-[6px] border-l-2 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)] overflow-hidden touch-none select-none cursor-pointer hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)] transition-shadow ${isFaved ? 'bg-amber-50' : ''}`}
+      className={`${isDragOverlay ? 'relative' : 'absolute'} rounded-[6px] border-l-2 shadow-[0_1px_3px_rgba(0,0,0,0.08)] overflow-hidden touch-none select-none cursor-pointer hover:shadow-[0_2px_6px_rgba(0,0,0,0.12)] transition-shadow ${isFaved ? 'bg-amber-50' : 'bg-white'}`}
       style={style}
       onClick={() => !isDragging && onTap(event.idx)}
     >
