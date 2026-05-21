@@ -86,9 +86,6 @@ export function MobileTimeline({ mobileFilter, onFilterChange, onTapEvent }: Mob
                 <span className="text-[14px] font-semibold text-[#191c1e] tabular-nums">
                   {group.time}
                 </span>
-                <span className="text-[11px] text-[#78767b] tabular-nums">
-                  {group.events[0].endMin - group.events[0].startMin} min
-                </span>
               </div>
 
               {/* Vertical line + cards */}
